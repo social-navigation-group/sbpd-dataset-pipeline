@@ -37,6 +37,8 @@ class VideoPlayer(QWidget):
 
         self.trajectory_manager = TrajectoryManager(self.human_config)
         self.trajectory_manager.set_trajectories()
+        
+        self.trajectory_manager.updateFrame.connect(self.show_frame_at)
 
         # TIMERS
         self.timer = QTimer()
@@ -162,6 +164,8 @@ class VideoPlayer(QWidget):
 
         if frame is not None:
             self.display_frame(frame)
+            self.current_frame = frame_number
+            self.view.current_frame = frame_number
         else:
             log_warning(f"Frame {frame_number} is None. Video might be corrupted or out of range.")
 

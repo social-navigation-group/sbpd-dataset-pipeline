@@ -25,7 +25,29 @@ class TrajectoryClickHandler(QGraphicsView):
         click_marker.setPen(QPen(Qt.GlobalColor.red, 2))
         click_marker.setBrush(QBrush(Qt.GlobalColor.red))
         self.graphics_scene.addItem(click_marker)
+                
+        if self.trajectory_manager.isDrawing:
+            # Drawing finish when clicking at blank.
+            for item in self.graphics_scene.items(scene_pos):
+                if isinstance(item, QGraphicsPixmapItem):
+                    pixmap_item = item
+                    pixmap_rect = pixmap_item.pixmap().rect()
+                    item_pos = pixmap_item.mapFromScene(scene_pos)
 
+                    orig_x = int((item_pos.x() / pixmap_item.boundingRect().width()) * pixmap_rect.width())
+                    orig_y = int((item_pos.y() / pixmap_item.boundingRect().height()) * pixmap_rect.height())
+                    log_info(f"Mapped pixel coordinates: (x={orig_x}, y={orig_y})")
+                    
+                    self.trajectory_manager.store_newTrajectory(orig_x, orig_y)
+                    self.trajectory_manager.updateFrame.emit(self.current_frame + 30)
+                    return
+            self.trajectory_manager.drawingFinished.emit(1)
+            print('Blank clicked.')
+            for item in self.graphics_scene.items():
+                if isinstance(item, QGraphicsEllipseItem):
+                    self.graphics_scene.removeItem(item)
+            return
+                    
         if self.trajectory_overlay is None:
             log_error("ERROR: Click handler has no overlay assigned!")
             return
@@ -46,10 +68,12 @@ class TrajectoryClickHandler(QGraphicsView):
 
                 if selected_traj_id is not None:
                     log_info(f"Selected trajectory ID: {selected_traj_id}")
-                    if not self.dual_selection_enabled:
-                        self.trajectory_manager.clear_selection()
-        
-                    self.trajectory_manager.set_selected_trajectory(selected_traj_id)
+                    if self.trajectory_manager.isWaitingID:
+                        self.trajectory_manager.set_selected_trajectory(selected_traj_id)
+                        self.trajectory_manager.ID_selected.emit(1)
+                        for item in self.graphics_scene.items():
+                            if isinstance(item, QGraphicsEllipseItem):
+                                self.graphics_scene.removeItem(item)
                     self.highlight_selected_trajectory(selected_traj_id)
                     
                     found_trajectory = True

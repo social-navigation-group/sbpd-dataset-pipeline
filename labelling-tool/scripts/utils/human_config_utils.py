@@ -55,8 +55,8 @@ class HumanConfigUtils():
 
     def get_element(self, humanID, elementName):
         # return self.dict[f"human{humanID}"][elementName]'''
-        if humanID in self.dict:
-            return self.dict[humanID].get(elementName, None) 
+        if humanID in self.used_indices:
+            return self.dict[f"human{humanID}"].get(elementName, None) 
         return None
 
     def set_element(self, humanID, elementName, value):
@@ -64,3 +64,6 @@ class HumanConfigUtils():
             log_warning(f"Creating new entry for missing humanID: {humanID}")
             self.dict[f"humanID{humanID}"] = {}
         self.dict[f"human{humanID}"][elementName] = value
+    
+    def exist(self, humanID):
+        return humanID in self.used_indices
