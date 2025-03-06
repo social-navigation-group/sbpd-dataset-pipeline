@@ -48,7 +48,6 @@ class HumanConfigUtils():
     def delete_ID(self, humanID):
         if f"human{humanID}" in self.dict:
             self.dict.pop(f"human{humanID}", None)
-            # del self.dict[f"human{humanID}"]
             log_info(f"Deleted trajectory ID: {humanID}")
         else:
             log_warning(f"Tried to delete non-existent humanID: {humanID}")
@@ -57,7 +56,6 @@ class HumanConfigUtils():
             self.used_indices.remove(humanID)
 
     def get_element(self, humanID, elementName):
-        # return self.dict[f"human{humanID}"][elementName]'''
         if humanID in self.used_indices:
             return self.dict[f"human{humanID}"].get(elementName, None) 
         return None

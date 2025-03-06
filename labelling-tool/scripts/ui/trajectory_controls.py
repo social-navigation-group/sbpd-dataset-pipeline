@@ -3,7 +3,7 @@ from datetime import datetime
 from utils.logging_utils import log_info
 from video_proc_comps.button_controller import ButtonController
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QLabel, QLineEdit, QGroupBox, QListWidget
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QLabel, QLineEdit, QGroupBox
 )
 
 class TrajectoryControls(QWidget):
@@ -69,7 +69,7 @@ class TrajectoryControls(QWidget):
         if not log_text:
             return 
 
-        log_entry = f"Frame: {current_frame}, Trajectory: {selected_trajectory}\nError Description: {log_text}\n\n"
+        log_entry = f"Current Frame: {current_frame}, Active Trajectories: {selected_trajectory}\nError Description: {log_text}\n\n"
 
         log_file_path = "trajectory_transformation_error_logs.txt"
         save_directory = os.path.join(self.button_controller.video_player.resource_manager.config_path)

@@ -18,7 +18,7 @@ class TrajectoryClickHandler(QGraphicsView):
 
     def mousePressEvent(self, event):
         """Handles mouse click events and selects the closest trajectory."""
-        # This chain of parents is a lazy way to get to the main_window class from this class
+        # getting main_window class
         self.fully_loaded = self.parent().parent().parent().parent().parent().fully_loaded
 
         if self.fully_loaded: 
@@ -48,7 +48,7 @@ class TrajectoryClickHandler(QGraphicsView):
                 log_error("ERROR: Click handler has no overlay assigned!")
                 return
 
-            # found_trajectory = False
+            found_trajectory = False
             if self.trajectory_manager.isWaitingID:
                 for item in self.graphics_scene.items(scene_pos):
                     if isinstance(item, QGraphicsPixmapItem):
@@ -66,10 +66,11 @@ class TrajectoryClickHandler(QGraphicsView):
                             log_info(f"Selected trajectory ID: {selected_traj_id}")
 
                             trajectory = np.array(self.trajectory_manager.trajectories[selected_traj_id])
-                            select_idx = np.argmin(np.linalg.norm(trajectory - [orig_x, orig_y], axis=1))
-                            select_frame = select_idx + self.trajectory_manager.traj_starts[selected_traj_id]
+                            select_idx = np.argmin(np.linalg.norm(trajectory - [orig_x, orig_y], axis = 1))
+                            select_frame = int(select_idx + self.trajectory_manager.traj_starts[selected_traj_id])
                             
-                            if len(self.trajectory_manager.get_selected_trajectory()) >= 2:
+                            click_limit = 2 if self.get_ui_class().button_controller.mode in [4, 6] else 1
+                            if len(self.trajectory_manager.get_selected_trajectory()) >= click_limit:
                                 self.clear_highlight()
 
                             self.trajectory_manager.set_selected_trajectory(selected_traj_id, select_frame)
@@ -77,18 +78,17 @@ class TrajectoryClickHandler(QGraphicsView):
                             if self.get_ui_class().button_controller.mode != 2:
                                 self.write_traj_id_on_input(str(selected_traj_id + 1))
                                 self.refresh_frame_if_paused()
-                                # self.highlight_selected_trajectory(selected_traj_id) 
 
                             for item in self.graphics_scene.items():
                                 if isinstance(item, QGraphicsEllipseItem):
                                     self.graphics_scene.removeItem(item)
                             
-                            # found_trajectory = True
+                            found_trajectory = True
                             break
                     
-                # if not found_trajectory:
-                    # log_info("No trajectory selected, clearing highlight.")
-                    # self.clear_highlight()
+                if not found_trajectory:
+                    log_info("No trajectory selected, clearing highlight.")
+                    self.clear_highlight()
 
         super().mousePressEvent(event)
 
@@ -117,11 +117,6 @@ class TrajectoryClickHandler(QGraphicsView):
                         
         log_info("No trajectory found in neighborhood")
         return None
-    
-    # def highlight_selected_trajectory(self, traj_id):
-        # log_info(f"Highlighting trajectory {traj_id}")
-        # self.trajectory_manager.set_selected_trajectory(traj_id)
-        # self.refresh_frame_if_paused()
 
     def clear_highlight(self):
         """Removes the highlight when clicking outside a trajectory."""

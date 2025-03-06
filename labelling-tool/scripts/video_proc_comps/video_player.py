@@ -1,5 +1,4 @@
 import cv2
-import time
 import numpy as np
 from PyQt6.QtCore import Qt, QTimer
 from .playback_mode import PlaybackMode
@@ -164,12 +163,10 @@ class VideoPlayer(QWidget):
                     log_warning(f"Failed to read frame {frame_number}")
                     return
                 
-        #if self.playback_mode in [PlaybackMode.REWINDING, PlaybackMode.FORWARDING] or frame_number not in self.frame_cache:
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number) # in the future this needs to be fixed
 
         if frame is not None:  
             self.display_frame(frame)
-            # self.frame_cache[frame_number] = frame 
             self.current_frame = frame_number
             self.view.current_frame = frame_number
         else:
@@ -188,7 +185,6 @@ class VideoPlayer(QWidget):
             return 
 
         try:
-            # start_time = time.time()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             if overlay is None:
@@ -213,10 +209,6 @@ class VideoPlayer(QWidget):
             log_debug(f"Updating display with overlay sum: {np.sum(self.trajectory_overlay)}")
             self.graphics_scene.setSceneRect(0, 0, pixmap.width(), pixmap.height())
             self.view.fitInView(self.pixmap_item, Qt.AspectRatioMode.KeepAspectRatio)
-
-            # end_time = time.time()
-            # render_time = (end_time - start_time) * 1000  
-            # log_info(f"[PERF] Frame rendered in {render_time:.2f} ms")
         except Exception as e:
             log_error(f"Error in display_frame: {e}")
 

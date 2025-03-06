@@ -168,8 +168,6 @@ class ButtonController():
             self.trajectory_manager.isWaitingID = True
         else:
             selected_IDs = self.trajectory_manager.get_selected_trajectory()
-            print(selected_IDs)
-            # selected_ID = [id[0] for id in selected_ID]
 
             if len(selected_IDs) == 1 and self.mode in [4, 6]:
                 log_info("Click the second trajectory or input the ID.")
@@ -177,8 +175,6 @@ class ButtonController():
             else:
                 log_info("Selecting trajectories was done.")
                 self.trajectory_manager.isWaitingID = False
-                # self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
-                # edit_frame = self.video_player.current_frame
 
                 # Relabel
                 # Start drawing trajectories.
@@ -209,7 +205,6 @@ class ButtonController():
     def on_select_pressed(self):
         line_edit = self.trajectory_controls.labeling_layout.itemAt(1).layout().itemAt(0).widget() 
         select_btn = self.trajectory_controls.labeling_layout.itemAt(1).layout().itemAt(1).widget() 
-        # active_trajectories = self.trajectory_manager.get_active_trajectories(self.startFrame)
 
         try:
             input_text = line_edit.text().strip() 
@@ -255,9 +250,7 @@ class ButtonController():
         else:
             self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
             self.highlight_selected_button(self.prev_operation_btn)
-
-            if self.mode in [3, 5]:
-                self.trajectory_manager.updateFrame.emit(self.startFrame)
+            self.trajectory_manager.updateFrame.emit(self.startFrame)
                 
             self.mode = 0
             self.highlight_selected_button(self.prev_operation_btn)
@@ -284,7 +277,6 @@ class ButtonController():
         traj_start = self.trajectory_manager.traj_starts[humanID]
         trajectories_old = self.trajectory_manager.trajectories[humanID]
         
-        # new_trajectories = trajectories_old[:(startFrame - traj_start)] + new_trajectories
         if startFrame > traj_start:
             traj_end = traj_start + len(trajectories_old)
             new_traj_end = startFrame + len(new_trajectories)
@@ -333,9 +325,6 @@ class ButtonController():
             QMessageBox.warning(self.trajectory_controls, "Warning", "Please select the frame where you want to break the trajectory.")
             return
         
-        print(f"humanID in break_func: {type(humanID)}")
-        print(f"startFrame in break_func: {startFrame}")
-        
         traj_start_old = self.trajectory_manager.traj_starts[humanID]
         trajectories_old = self.trajectory_manager.trajectories[humanID]
         
@@ -354,7 +343,6 @@ class ButtonController():
         log_debug(f"{startFrame} - {startFrame + len(trajectories_new2) - 1} -> ID: {new_trajID}")
         
         self.trajectory_manager.clear_selection()
-        # self.mode = 0
         
     def join_func(self, humanID1, humanID2):
         """Join function: join 2 trajectories into one.
@@ -369,7 +357,6 @@ class ButtonController():
         trajectories1 = self.trajectory_manager.trajectories[humanID1]
         trajectories2 = self.trajectory_manager.trajectories[humanID2]
         
-        # trajectories_new = trajectories1[:startFrame - traj_start1] + trajectories2[startFrame - traj_start2:]
         traj_end1 = traj_start1 + len(trajectories1) - 1
 
         if traj_start2 <= traj_end1:
@@ -407,9 +394,7 @@ class ButtonController():
         """Delete function: delete trajectory."""
         self.backup()
         self.trajectory_manager.remove_trajectory(humanID)
-        
         self.trajectory_manager.clear_selection()
-        # self.mode = 0
     
     def disentangle_func(self, humanID1, humanID2, startFrame):
         """Disentangle function: swap two trajectories after the startFrame"""
