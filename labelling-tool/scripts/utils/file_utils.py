@@ -27,11 +27,3 @@ def list_video_files(directory: str):
     if not os.path.isdir(directory):
         return []
     return [f for f in os.listdir(directory) if is_valid_video_file(os.path.join(directory, f))]
-
-'''def get_supported_video_formats() -> list:
-    """Return a list of supported video file extensions."""
-    return [".avi", ".mp4", ".mkv", ".mov"]
-
-def is_supported_video_file(file_path: str) -> bool:
-    """Check if the given file has a supported video extension."""
-    return any(file_path.lower().endswith(ext) for ext in get_supported_video_formats())'''

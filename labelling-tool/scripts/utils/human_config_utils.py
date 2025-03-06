@@ -2,8 +2,11 @@ import toml
 from .logging_utils import log_info, log_warning
 
 class HumanConfigUtils():
-    def __init__(self, path):
-        self.dict = self.load_human_config(path)
+    def __init__(self):
+        self.human_traj_file = None
+
+    def start_human_traj(self):
+        self.dict = self.load_human_config(self.human_traj_file)
         self.used_indices = [int(key.replace("human", "")) for key in self.dict.keys()]
 
     def load_human_config(self, path):
@@ -36,8 +39,8 @@ class HumanConfigUtils():
         newHuman_name = f"human{newHuman_ID}"
         
         self.dict[newHuman_name] = {}
-        self.dict[newHuman_name]["trajectories"] = None
         self.dict[newHuman_name]["traj_start"] = None
+        self.dict[newHuman_name]["trajectories"] = None
         self.dict[newHuman_name]["human_context"] = None
         
         return newHuman_ID
@@ -45,7 +48,6 @@ class HumanConfigUtils():
     def delete_ID(self, humanID):
         if f"human{humanID}" in self.dict:
             self.dict.pop(f"human{humanID}", None)
-            # del self.dict[f"human{humanID}"]
             log_info(f"Deleted trajectory ID: {humanID}")
         else:
             log_warning(f"Tried to delete non-existent humanID: {humanID}")
@@ -54,9 +56,8 @@ class HumanConfigUtils():
             self.used_indices.remove(humanID)
 
     def get_element(self, humanID, elementName):
-        # return self.dict[f"human{humanID}"][elementName]'''
-        if humanID in self.dict:
-            return self.dict[humanID].get(elementName, None) 
+        if humanID in self.used_indices:
+            return self.dict[f"human{humanID}"].get(elementName, None) 
         return None
 
     def set_element(self, humanID, elementName, value):
@@ -64,3 +65,6 @@ class HumanConfigUtils():
             log_warning(f"Creating new entry for missing humanID: {humanID}")
             self.dict[f"humanID{humanID}"] = {}
         self.dict[f"human{humanID}"][elementName] = value
+    
+    def exist(self, humanID):
+        return humanID in self.used_indices

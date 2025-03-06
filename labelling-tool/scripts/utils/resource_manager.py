@@ -5,6 +5,7 @@ class ResourceManager:
     """Handles resource file paths dynamically"""
 
     def __init__(self, base_path: str):
+        self.video_name = ""
         self.base_path = base_path
 
         self.resources_path = os.path.join(self.base_path, "resources")
@@ -27,10 +28,7 @@ class ResourceManager:
         """Returns the full path of the QSS stylesheet."""
         return os.path.join(self.resources_path, "styles.qss")
 
-    def get_human_config(self):
-        """Returns the path of human_config.toml."""
-        return os.path.join(self.config_path, "human_config.toml")
-
     def get_video(self, name):
         """Returns the path of the videos directory."""
+        self.video_name = name
         return os.path.join(self.video_path, f"{name}")

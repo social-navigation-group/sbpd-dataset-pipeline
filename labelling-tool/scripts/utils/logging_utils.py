@@ -2,7 +2,7 @@ import os
 import logging
 from .file_utils import ensure_directory_exists
 
-def setup_logger(name: str, log_file: str, level=logging.INFO):
+def setup_logger(name: str, log_file: str, level = logging.INFO):
     """Sets up a logger with a specific name and log file."""
     ensure_directory_exists(os.path.dirname(log_file))
 
@@ -33,4 +33,8 @@ def log_warning(message: str):
 def log_error(message: str):
     """Logs an error-level message."""
     app_logger.error(message)
+
+def log_debug(message: str):
+    """Logs an debug-level message."""
+    app_logger.debug(message)
 

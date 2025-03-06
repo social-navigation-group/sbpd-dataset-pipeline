@@ -13,22 +13,24 @@ QPushButton:hover {
     background-color: #005A9E;
 }
 
+QPushButton:disabled {
+    background-color: lightgray;
+}
+
 QTextEdit {
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: white;
 }
 
-QSlider::groove:horizontal {
-    background: #ddd;
-    height: 5px;
-    border-radius: 3px;
-}
-
 QSlider::handle:horizontal {
     background: #0078D7;
     width: 10px;
     border-radius: 5px;
+}
+
+QSlider::handle:horizontal:disabled{
+    background: lightgray;
 }
 
 QComboBox {

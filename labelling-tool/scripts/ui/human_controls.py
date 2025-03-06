@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton
+from utils.logging_utils import log_info
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QGroupBox
 
 class HumanControls(QWidget):
     def __init__(self, video_player, parent: QWidget):
@@ -15,12 +16,18 @@ class HumanControls(QWidget):
         self.humanLabel = ['Adults' for _ in range(self.numPerson)]
         
     def create_human_controls(self):
-        labeling_layout = QVBoxLayout()
+        human_context_group = QGroupBox("Human Context: ")
+        human_context_layout = QVBoxLayout()
         
         for label in ["Strollers", "Children", "Adults", "Elderly", "Wheelchairs", "Blind"]:
             button = QPushButton(label)
             button.clicked.connect(self.on_label_button_clicked)
-            labeling_layout.addWidget(button)
+            human_context_layout.addWidget(button)
+
+        human_context_group.setLayout(human_context_layout)
+
+        labeling_layout = QVBoxLayout()
+        labeling_layout.addWidget(human_context_group)
         
         return labeling_layout
             
@@ -29,7 +36,7 @@ class HumanControls(QWidget):
         
         if clicked_button is not None:
             clicked_label = clicked_button.text()
-            print(f'Human ID {self.labelling_now + 1}: {clicked_label}')
+            log_info(f'Human ID {self.labelling_now + 1}: {clicked_label}')
             self.humanLabel[self.labelling_now] = clicked_label
             self.labelling_now += 1
     

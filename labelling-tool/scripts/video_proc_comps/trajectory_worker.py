@@ -2,7 +2,7 @@ import cv2
 import time
 import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
-from utils.logging_utils import log_info, log_error
+from utils.logging_utils import log_info, log_error, log_debug
 
 class TrajectoryWorker(QThread):
     update_overlay = pyqtSignal(np.ndarray)
@@ -19,8 +19,6 @@ class TrajectoryWorker(QThread):
         self.video_height = video_height
         self.color_generator = color_generator
         self.trajectory_manager = trajectory_manager
-
-        self.colors = None
 
     def run(self):
         """Runs the thread and updates overlay when frame changes."""
@@ -45,10 +43,11 @@ class TrajectoryWorker(QThread):
         """Generates trajectory overlay and labels for a frame."""
         overlay = np.zeros((self.video_height, self.video_width, 3), dtype = np.uint8)
         active_trajectories = self.trajectory_manager.get_active_trajectories(frame_number)
-        highlighted_trajs = self.trajectory_manager.get_selected_trajectory()
+        highlighted_trajs_info = self.trajectory_manager.get_selected_trajectory()
+        highlighted_trajs = [info[0] for info in highlighted_trajs_info]
 
-        log_info(f"Active Trajectories: {active_trajectories}")
-        log_info(f"Highlighted Trajectory: {highlighted_trajs}")
+        log_debug(f"Active Trajectories: {active_trajectories}")
+        log_debug(f"Highlighted Trajectory: {highlighted_trajs}")
 
         for traj_id in active_trajectories:
             if traj_id not in active_trajectories:
@@ -67,10 +66,10 @@ class TrajectoryWorker(QThread):
 
                 if traj_id in highlighted_trajs: 
                     highlighted_color = np.array([0, 255, 0], dtype = np.uint8) 
-                    log_info(f"[DEBUG] Drawing trajectory {traj_id} with HIGHLIGHT color {highlighted_color.tolist()}")
+                    log_debug(f"Drawing trajectory {traj_id} with HIGHLIGHT color {highlighted_color.tolist()}")
                 else:
                     highlighted_color = np.array(color, dtype = np.uint8)
-                    log_info(f"[DEBUG] Drawing trajectory {traj_id} with NORMAL color {highlighted_color.tolist()}")
+                    log_debug(f"Drawing trajectory {traj_id} with NORMAL color {highlighted_color.tolist()}")
 
                 if len(active_traj) > 1:
                     for j in range(len(active_traj) - 1):
@@ -83,7 +82,7 @@ class TrajectoryWorker(QThread):
             except Exception as e:
                 log_error(f"Error processing trajectory {traj_id} at frame {frame_number}: {e}")
 
-        log_info(f"[DEBUG] Returning overlay for frame {frame_number}, np.sum: {np.sum(overlay)}")
+        log_debug(f"Returning overlay for frame {frame_number}, np.sum: {np.sum(overlay)}")
         return overlay
     
     def _preload_future_frames(self, current_frame):
@@ -92,7 +91,7 @@ class TrajectoryWorker(QThread):
 
         # If a trajectory is selected, stop preloading and clear outdated preloaded frames
         if selected_trajectory is not None:
-            log_info("[DEBUG] Preloading halted due to active selection.")
+            log_debug("Preloading halted due to active selection.")
             self.overlay_cache.clear() 
             return  
 
@@ -108,7 +107,7 @@ class TrajectoryWorker(QThread):
             for key in keys[:-self.cache_size]:  
                 del self.overlay_cache[key]
 
-        log_info(f"[DEBUG] Preloaded frames up to {max_preload}, current frame: {current_frame}")
+        log_debug(f"Preloaded frames up to {max_preload}, current frame: {current_frame}")
 
     def scale_point(self, point):
         try:
@@ -125,7 +124,7 @@ class TrajectoryWorker(QThread):
         if self.frame_number == frame_number:
             return
         
-        log_info(f"[DEBUG] Updating frame to {frame_number}")
+        log_debug(f"Updating frame to {frame_number}")
         self.frame_number = frame_number
 
         if frame_number in self.overlay_cache:

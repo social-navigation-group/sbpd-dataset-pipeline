@@ -8,20 +8,20 @@ from utils.logging_utils import log_info, log_warning
 from video_proc_comps.video_player import VideoPlayer
 from video_proc_comps.playback_mode import PlaybackMode
 from PyQt6.QtWidgets import (
-    QWidget, QPushButton, QHBoxLayout, QSlider, QSizePolicy, QLabel, QVBoxLayout, QComboBox
+    QWidget, QPushButton, QHBoxLayout, QSlider, QSizePolicy, QLabel, QVBoxLayout, QComboBox, QMessageBox
 )
 
 class VideoControls(QWidget):
-    def __init__(self, resource_manager: str):
-        super().__init__()
+    def __init__(self, resource_manager: str, parent = None):
+        super().__init__(parent)
         self.resource_manager = resource_manager
         self.resources_path = self.resource_manager.resources_path
-        self.video_player = VideoPlayer(self, self.resource_manager)
+        self.video_player = VideoPlayer(self, self.resource_manager, self)
 
         # VIDEO FILE DROPDOWN
         self.video_dropdown = QComboBox()
         self.populate_video_list()
-        # self.video_dropdown.currentIndexChanged.connect(self.load_video) 
+        self.video_dropdown.currentIndexChanged.connect(self.load_video) 
 
         # SET THE CONTROLS IN THE LAYOUT
         self.setLayout(self.create_video_controls())
@@ -40,11 +40,12 @@ class VideoControls(QWidget):
             self.video_dropdown.addItem("Select a video")
             self.video_dropdown.addItems(video_files)
 
-    def create_button(self, icon_path, callback, size=(50, 22)):
+    def create_button(self, icon_path, callback, size = (50, 22)):
         """Helper function to create buttons with icons."""
         button = QPushButton()
         button.setFixedSize(*size)
         button.setIcon(QIcon(icon_path))
+        button.setEnabled(False)
         button.clicked.connect(callback)
         return button
 
@@ -56,10 +57,10 @@ class VideoControls(QWidget):
         self.play_pause_button = self.create_button(self.resource_manager.get_icon("play", "play-60"), self.toggle_to_play)
         self.stop_button = self.create_button(self.resource_manager.get_icon("stop", "stop-60"), self.toggle_to_stop)
         self.forward_button = self.create_button(self.resource_manager.get_icon("fast-forward", "forward-60"), self.toggle_to_forward)
-        self.upload_button = self.create_button(self.resource_manager.get_icon("upload", "upload-60"), self.load_video)
+        # self.upload_button = self.create_button(self.resource_manager.get_icon("upload", "upload-60"), self.load_video)
 
         playback_controls = QHBoxLayout()
-        for btn in [self.rewind_button, self.play_pause_button, self.stop_button, self.forward_button, self.video_dropdown, self.upload_button]:
+        for btn in [self.rewind_button, self.play_pause_button, self.stop_button, self.forward_button, self.video_dropdown]: #, self.upload_button
             playback_controls.addWidget(btn)
             if btn == self.forward_button:
                 playback_controls.addStretch(1)
@@ -68,6 +69,7 @@ class VideoControls(QWidget):
         self.frame_slider = QSlider(Qt.Orientation.Horizontal)
         self.frame_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.frame_slider.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.frame_slider.setEnabled(False)
         self.frame_slider.valueChanged.connect(self.slider_moved)
 
         self.current_frame_label = QLabel()
@@ -99,7 +101,10 @@ class VideoControls(QWidget):
 
         video_path = self.resource_manager.get_video(selected_video)
         log_info(f"User selected video file: {video_path}")
+        
         self.video_player.load_video(video_path)
+        self.parent().parent().parent().file_menu.setEnabled(True)
+        self.parent().parent().parent().save_action.setEnabled(False)
 
         total_frames = int(self.video_player.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         if total_frames > 0:
