@@ -1,3 +1,4 @@
+from utils.logging_utils import log_info
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton
 
 class HumanControls(QWidget):
@@ -29,7 +30,7 @@ class HumanControls(QWidget):
         
         if clicked_button is not None:
             clicked_label = clicked_button.text()
-            print(f'Human ID {self.labelling_now + 1}: {clicked_label}')
+            log_info(f'Human ID {self.labelling_now + 1}: {clicked_label}')
             self.humanLabel[self.labelling_now] = clicked_label
             self.labelling_now += 1
     

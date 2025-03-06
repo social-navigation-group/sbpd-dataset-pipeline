@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox, QGraphicsEllipseItem
 
 from utils.persistent_message_box import PersistentMessageBox
-from utils.logging_utils import log_info, log_error
+from utils.logging_utils import log_info, log_error, log_debug
 
 class ButtonController():
     def __init__(self, trajectory_controls):
@@ -150,7 +150,6 @@ class ButtonController():
             self.trajectory_manager.isWaitingID = False
             self.trajectory_manager.isDrawing = False
             self.cancel_operation = False
-            # self.trajectory_click_handler.one_selection_only = False
             return
 
         if self.trajectory_manager.get_selected_trajectory() == []:
@@ -167,9 +166,11 @@ class ButtonController():
                 log_info("Click a trajectory or input trajectory ID.")
                 self.trajectory_controls.create_trajID_input(self.trajectory_controls.labeling_layout, 1, self.mode)
             self.trajectory_manager.isWaitingID = True
-            # self.trajectory_click_handler.one_selection_only = True
         else:
             selected_IDs = self.trajectory_manager.get_selected_trajectory()
+            print(selected_IDs)
+            # selected_ID = [id[0] for id in selected_ID]
+
             if len(selected_IDs) == 1 and self.mode in [4, 6]:
                 log_info("Click the second trajectory or input the ID.")
                 self.trajectory_controls.create_trajID_input(self.trajectory_controls.labeling_layout, 2, self.mode)
@@ -204,9 +205,6 @@ class ButtonController():
                 # Disentangle
                 elif self.mode == 6:
                     self.disentangle_func(selected_IDs[0][0], selected_IDs[1][0], selected_IDs[1][1])
-                
-                # self.video_player.show_frame_at(edit_frame)
-                # self.trajectory_manager.updateFrame.emit(edit_frame)
 
     def on_select_pressed(self):
         line_edit = self.trajectory_controls.labeling_layout.itemAt(1).layout().itemAt(0).widget() 
@@ -219,9 +217,9 @@ class ButtonController():
                 raise ValueError("Input is empty.") 
             
             selected_ID = int(input_text) - 1  
-
-            # if selected_ID in active_trajectories:
-            self.trajectory_click_handler.highlight_selected_trajectory(selected_ID)
+ 
+            self.trajectory_manager.set_selected_trajectory(selected_ID, self.startFrame)
+            self.trajectory_click_handler.refresh_frame_if_paused()
             line_edit.setEnabled(False)
             select_btn.setEnabled(False)
 
@@ -250,7 +248,6 @@ class ButtonController():
                         self.trajectory_manager.drawingFinished.emit(1)
 
                         graphic_scene.removeItem(item)
-                        # self.trajectory_click_handler.one_selection_only = False
                         self.highlight_selected_button(self.prev_operation_btn)
 
             if not red_circle_found:
@@ -263,13 +260,13 @@ class ButtonController():
                 self.trajectory_manager.updateFrame.emit(self.startFrame)
                 
             self.mode = 0
-            # self.trajectory_click_handler.one_selection_only = False
             self.highlight_selected_button(self.prev_operation_btn)
 
     def on_drawFinished(self):
         """Functions for after drawing trajecotries."""
         self.trajectory_manager.isDrawing = False
         selected_ID = self.trajectory_manager.get_selected_trajectory()
+        selected_ID = [id[0] for id in selected_ID]
         
         # Relabel
         if self.mode == 1:
@@ -335,6 +332,10 @@ class ButtonController():
         if startFrame == None:
             QMessageBox.warning(self.trajectory_controls, "Warning", "Please select the frame where you want to break the trajectory.")
             return
+        
+        print(f"humanID in break_func: {type(humanID)}")
+        print(f"startFrame in break_func: {startFrame}")
+        
         traj_start_old = self.trajectory_manager.traj_starts[humanID]
         trajectories_old = self.trajectory_manager.trajectories[humanID]
         
@@ -349,8 +350,8 @@ class ButtonController():
         new_trajID = self.trajectory_manager.add_trajectory(trajectories_new2, traj_start_new2)
         
         log_info(f"Trajectory {humanID} was divided.")
-        log_info(f"{traj_start_old} - {startFrame - 1} -> ID: {humanID}")
-        log_info(f"{startFrame} - {startFrame + len(trajectories_new2) - 1} -> ID: {new_trajID}")
+        log_debug(f"{traj_start_old} - {startFrame - 1} -> ID: {humanID}")
+        log_debug(f"{startFrame} - {startFrame + len(trajectories_new2) - 1} -> ID: {new_trajID}")
         
         self.trajectory_manager.clear_selection()
         # self.mode = 0

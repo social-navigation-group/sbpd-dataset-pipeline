@@ -32,20 +32,6 @@ class TrajectoryControls(QWidget):
 
         traj_edit_group.setLayout(traj_edit_layout)
 
-        self. traj_visibility_group = QGroupBox("Trajectories Visibility:")
-        self.traj_visibility_layout = QVBoxLayout()
-
-        self.hide_except_selected_btn = QPushButton()
-        self.hide_except_selected_btn.setText("Hide Except Selected")
-        
-        self.hide_except_selected_btn.setEnabled(False)
-        # self.hide_except_selected_btn.clicked.connect(self.hide_except_selected)
-        self.trajectory_list_widget = QListWidget() 
-
-        self.traj_visibility_layout.addWidget(self.hide_except_selected_btn)
-        self.traj_visibility_layout.addWidget(self.trajectory_list_widget)
-        self.traj_visibility_group.setLayout(self.traj_visibility_layout)
-
         self.log_labeling = QTextEdit()
         self.log_labeling.setPlaceholderText("Log the labeling here if needed...")
         self.log_submit_button = QPushButton()
@@ -70,7 +56,6 @@ class TrajectoryControls(QWidget):
 
         labeling_layout = QVBoxLayout()
         labeling_layout.addWidget(traj_edit_group)
-        labeling_layout.addWidget(self.traj_visibility_group)
         labeling_layout.addWidget(traj_log_group)
 
         return labeling_layout

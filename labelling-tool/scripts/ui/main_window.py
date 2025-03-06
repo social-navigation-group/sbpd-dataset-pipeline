@@ -94,7 +94,6 @@ class MainWindow(QMainWindow):
 
                 self.fully_loaded = True
                 self.tab_dialog.trajectory_controls.log_labeling.setEnabled(True)
-                self.tab_dialog.trajectory_controls.hide_except_selected_btn.setEnabled(True)
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to update video player: {e}")
     

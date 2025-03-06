@@ -12,7 +12,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir, exist_ok=True)
 
 if not os.path.exists(human_config_path):
-    print("Human config file not found! Test cannot proceed.")
+    log_info("Human config file not found! Test cannot proceed.")
     exit(1)
 
 import toml
@@ -22,4 +22,4 @@ human_config = toml.load(human_config_path)
 log_info("Running trajectory plotter for testing...")
 TrajectoryPlotter.plot_trajectories(video_path, save_path, human_config)
 
-print(f"Output saved to {save_path}")
+log_info(f"Output saved to {save_path}")

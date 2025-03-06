@@ -43,7 +43,8 @@ class TrajectoryWorker(QThread):
         """Generates trajectory overlay and labels for a frame."""
         overlay = np.zeros((self.video_height, self.video_width, 3), dtype = np.uint8)
         active_trajectories = self.trajectory_manager.get_active_trajectories(frame_number)
-        highlighted_trajs = self.trajectory_manager.get_selected_trajectory()
+        highlighted_trajs_info = self.trajectory_manager.get_selected_trajectory()
+        highlighted_trajs = [info[0] for info in highlighted_trajs_info]
 
         log_debug(f"Active Trajectories: {active_trajectories}")
         log_debug(f"Highlighted Trajectory: {highlighted_trajs}")
