@@ -10,6 +10,7 @@ class ButtonController():
         self.startFrame = 0
         self.prev_operation_btn = 0
         self.cancel_operation = False
+        self.lock_first_selection = False
         self.trajectory_controls = trajectory_controls
         self.video_player = self.trajectory_controls.video_player    
         self.human_config = self.video_player.human_config
@@ -25,9 +26,9 @@ class ButtonController():
            5: Delete, 6: Disentagle"""
 
     def on_relabel_clicked(self):
-        """Relabel Clicking Fuction: Appears QLineEdit and starts waiting for trajectory ID input."""
         log_info("Relabel button was pushed.")
-
+        
+        self.trajectory_manager.isDrawing = False
         self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
         self.trajectory_manager.clear_selection()
 
@@ -37,14 +38,13 @@ class ButtonController():
         PersistentMessageBox.show_message(
             self.trajectory_controls, "relabel_trajectory_start",
                 "Information",
-                "Select the trajectory you want to relabel."
+                "Select the trajectory you want to relabel - input manually in the input field or click directly on the trajectory you want to relabel - and click the Select button."
         )
 
         self.trajectory_manager.ID_selected.emit(1)
         self.startFrame = self.video_player.current_frame
     
     def on_missing_clicked(self):
-        """Missing Clicking Fuction: Starts drawing new trajectory."""
         log_info("Missing button was pushed.")
 
         self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
@@ -57,7 +57,6 @@ class ButtonController():
         self.startFrame = self.video_player.current_frame
     
     def on_break_clicked(self):
-        """Break Clicking Fuction: Appears QLineEdit and starts waiting for trajectory ID input."""
         log_info("Break button was pushed.")
 
         self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
@@ -69,14 +68,14 @@ class ButtonController():
         PersistentMessageBox.show_message(
             self.trajectory_controls, "break_trajectory",
                 "Information",
-                "Move through the frames to find the point where the trajectory should break. Clicking Apply to finalize the action."
+                "In the trajectory you want to break, click directly on point you want it to break.\n"
+                "Click Apply to finalize the action."
         )
 
         self.trajectory_manager.ID_selected.emit(1)
         self.startFrame = self.video_player.current_frame
     
     def on_join_clicked(self):
-        """Join Clicking Fuction: Appears QLineEdit and starts waiting for trajectory ID(1) input."""
         log_info("Join button was pushed")
 
         self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
@@ -88,15 +87,14 @@ class ButtonController():
         PersistentMessageBox.show_message(
             self.trajectory_controls, "join_trajectory",
                 "Information",
-                "Select the first trajectory.\n"
-                "Next, select the second trajectory to merge into the first one. Then just click the Apply button."
+                "Input the trajectory ID manually in the input field and click Select. \n"
+                "Next, input the second trajectory (to merge into the first one) and click select. Click Apply to finalize the action."
         )
 
         self.trajectory_manager.ID_selected.emit(1)
         self.startFrame = self.video_player.current_frame
         
     def on_delete_clicked(self):
-        """Delete Clicking Fuction: Appears QLineEdit and starts waiting for trajectory ID input."""
         log_info("Delete button was pushed.")
 
         self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
@@ -108,12 +106,12 @@ class ButtonController():
         PersistentMessageBox.show_message(
             self.trajectory_controls, "delete_trajectory",
                 "Information",
-                "Select the trajectory that you want to delete and apply the change."
+                "Select the trajectory you want to delete - input manually in the input field or click directly on the trajectory you want to delete - and click the Select button\n."
+                "Click Apply to finalize the action."
         )
         self.trajectory_manager.ID_selected.emit(1)
     
     def on_disentangle_clicked(self):
-        """Disentangle Clicking Fuction: Appears QLineEdit and starts waiting for trajectory ID(1) input."""
         log_info("Disentangle button was pushed.")
 
         self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
@@ -122,11 +120,19 @@ class ButtonController():
         self.mode = 6
         self.highlight_selected_button(5)
 
+        PersistentMessageBox.show_message(
+            self.trajectory_controls, "disentangle_trajectory",
+                "Information",
+                "Select the trajectory you want to disentangle:\n"
+                "Trajectory 1 - Input manually in the input field or click directly on the trajectory you want to relabel - and click the Select button.\n"
+                "Trajectory 2 - ONLY click directly in the 2nd trajectory on the point you want to disentangle - and click the Select button.\n"
+                "Click Apply to finalize the action."
+        )
+
         self.trajectory_manager.ID_selected.emit(1)
         self.startFrame = self.video_player.current_frame
     
     def on_undo_clicked(self):
-        """Undo Clicking Fuction: Reverses human_config to former one."""
         log_info("Undo button was pushed.")
         self.trajectory_manager.clear_selection()
         self.cancel_operation = True
@@ -137,7 +143,7 @@ class ButtonController():
     def on_ID_selected(self):
         """Handles when ID selected (both QLineEdit and mouse click)."""
         if self.cancel_operation:
-            if self.mode == 2:
+            if self.mode in [1, 2]:
                 for item in self.trajectory_click_handler.graphics_scene.items():
                     if isinstance(item, QGraphicsEllipseItem):
                         if item.pen().color() == Qt.GlobalColor.red:
@@ -147,8 +153,10 @@ class ButtonController():
             self.highlight_selected_button(self.prev_operation_btn)
             self.trajectory_click_handler.clear_highlight()
             self.mode = 0
+            self.enable_all_buttons()
             self.trajectory_manager.isWaitingID = False
             self.trajectory_manager.isDrawing = False
+            self.lock_first_selection = False
             self.cancel_operation = False
             return
 
@@ -165,6 +173,7 @@ class ButtonController():
             else:
                 log_info("Click a trajectory or input trajectory ID.")
                 self.trajectory_controls.create_trajID_input(self.trajectory_controls.labeling_layout, 1, self.mode)
+            self.disable_buttons_by_mode()
             self.trajectory_manager.isWaitingID = True
         else:
             selected_IDs = self.trajectory_manager.get_selected_trajectory()
@@ -172,6 +181,7 @@ class ButtonController():
             if len(selected_IDs) == 1 and self.mode in [4, 6]:
                 log_info("Click the second trajectory or input the ID.")
                 self.trajectory_controls.create_trajID_input(self.trajectory_controls.labeling_layout, 2, self.mode)
+                self.lock_first_selection = True
             else:
                 log_info("Selecting trajectories was done.")
                 self.trajectory_manager.isWaitingID = False
@@ -212,7 +222,7 @@ class ButtonController():
                 raise ValueError("Input is empty.") 
             
             selected_ID = int(input_text) - 1  
- 
+
             self.trajectory_manager.set_selected_trajectory(selected_ID, self.startFrame)
             self.trajectory_click_handler.refresh_frame_if_paused()
             line_edit.setEnabled(False)
@@ -253,6 +263,8 @@ class ButtonController():
             self.trajectory_manager.updateFrame.emit(self.startFrame)
                 
             self.mode = 0
+            self.enable_all_buttons()
+            self.lock_first_selection = False
             self.highlight_selected_button(self.prev_operation_btn)
 
     def on_drawFinished(self):
@@ -270,6 +282,9 @@ class ButtonController():
             self.missing_func(self.startFrame, self.trajectory_manager.trajectory_now)
         
         self.trajectory_manager.trajectory_now = []
+        self.enable_all_buttons()
+
+        self.lock_first_selection = False
         self.trajectory_manager.updateFrame.emit(self.startFrame)
     
     def relabel_func(self, humanID, startFrame, new_trajectories):
@@ -449,11 +464,38 @@ class ButtonController():
         self.put_back_to_blue()
 
         if not self.cancel_operation and self.mode != 0:
-            self.trajectory_controls.buttons[button_idx].setStyleSheet("background-color: orange;")
+            self.trajectory_controls.buttons[button_idx].setStyleSheet("""
+                QPushButton {
+                    background-color: orange;
+                }
+
+                QPushButton:disabled {
+                    background-color: lightgray;
+                }
+            """)
             self.prev_operation_btn = button_idx
         else:
             self.put_back_to_blue()
 
     def put_back_to_blue(self):
         for i in range(len(self.trajectory_controls.buttons) - 1):
-            self.trajectory_controls.buttons[i].setStyleSheet("background-color: #0078D7;")
+            self.trajectory_controls.buttons[i].setStyleSheet("""
+                QPushButton {
+                    background-color: #0078D7;
+                }
+
+                QPushButton:disabled {
+                    background-color: lightgray;
+                }
+            """)
+
+    def disable_buttons_by_mode(self):
+        for btn_idx in range(len(self.trajectory_controls.buttons)):
+            if self.mode == btn_idx + 1:
+                self.trajectory_controls.buttons[btn_idx].setEnabled(True)
+                continue
+            self.trajectory_controls.buttons[btn_idx].setEnabled(False)
+
+    def enable_all_buttons(self):
+        for btn in self.trajectory_controls.buttons:
+            btn.setEnabled(True)

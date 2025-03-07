@@ -86,7 +86,7 @@ class TrajectoryClickHandler(QGraphicsView):
                             found_trajectory = True
                             break
                     
-                if not found_trajectory:
+                if not found_trajectory and self.get_ui_class().button_controller.mode in [4, 6] and not self.get_ui_class().button_controller.lock_first_selection:
                     log_info("No trajectory selected, clearing highlight.")
                     self.clear_highlight()
 
