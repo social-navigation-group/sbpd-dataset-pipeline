@@ -1,6 +1,5 @@
 # Human Data Labeling Tool
 
-## Overview
 The **Human Data Labeling Tool** is a PyQt6-based application designed for annotating human movement trajectories in video files. It provides an interactive UI for loading videos, importing trajectory files, labeling human data, and managing trajectory modifications.
 This project is a Python conversion of an open-source [MATLAB-based tool](https://github.com/CMU-TBD/tbd_label_correction_UI) and has been tested on Linux systems.
 
