@@ -64,7 +64,7 @@ python3 path/to/main.py  # Use python or python3 depending on your system
 ### Trajectory Editing Buttons
 
 #### **Relabel**
-This button allows the user to draw a new trajectory starting at the frame the button was clicked. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field. After clicking, the user should click on the "Select" button to select the trajectory. After selecting the trajectory, the user must click directly at the video to draw the trajectory - each click will make the video jump 30 frames ahead so that the user can keep clicking the next point of the trajectory. This continues until there are no more frames or the user manually stops the relabeling. To apply the change the user needs to click the "Apply" button. If the user made the mistake of clicking in the relabel button, the user can cancel it enabling the other modifiers. After relabeling has been applied, the points are joined together into a single solid trajectory.
+This button allows the user to draw a new trajectory starting at the frame the button was clicked. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field. After clicking, the user should click on the **"Select"** button to select the trajectory. After selecting the trajectory, the user must click directly at the video to draw the trajectory - each click will make the video jump 30 frames ahead so that the user can keep clicking the next point of the trajectory. This continues until there are no more frames or the user manually stops the relabeling. To apply the change the user needs to click the **"Apply"** button. If the user made the mistake of clicking in the relabel button, the user can cancel it enabling the other modifiers. After relabeling has been applied, the points are joined together into a single solid trajectory.
 
 ##### Summarized Steps
 1. Trajectory Selection:
@@ -82,7 +82,7 @@ This button allows the user to draw a new trajectory starting at the frame the b
 ---
 
 #### **Missing**
-This button allows the user to draw a missing trajectory where none currently exists, starting at the frame the button was clicked. After pressing the button, the UI will update showing the "Apply" and "Cancel" buttons. If the user attempts to click **Apply** before making any change a message will be prompt to ensure proper action, be it to cancel or draw the missing trajectory. To draw the trajectory, the user must click directly at the video - each click will make the video jump 30 frames ahead so that the user can keep clicking the next point of the trajectory. This continues until there are no more frames or the user manually stops the relabeling. To apply the change the user needs to click the "Apply" button. If the user made the mistake of clicking in the missing button, the user can cancel it enabling the other modifiers.
+This button allows the user to draw a missing trajectory where none currently exists, starting at the frame the button was clicked. After pressing the button, the UI will update showing the "Apply" and "Cancel" buttons. If the user attempts to click **"Apply"** before making any change a message will be prompt to ensure proper action, be it to cancel or draw the missing trajectory. To draw the trajectory, the user must click directly at the video - each click will make the video jump 30 frames ahead so that the user can keep clicking the next point of the trajectory. This continues until there are no more frames or the user manually stops the relabeling. To apply the change the user needs to click the **"Apply"** button. If the user made the mistake of clicking in the missing button, the user can cancel it enabling the other modifiers.
 
 ##### Summarized Steps
 3. Draw the desired trajectory by **clicking in the video** - each click pushes the video 30 frames ahead, for the next point.
@@ -96,7 +96,7 @@ This button allows the user to draw a missing trajectory where none currently ex
 ---
 
 #### **Break**
-This button divides the selected trajectory (which is determined by the point clickled in the desired trajecotry to break) at the current frame into two separate trajectories. The first trajectory begins where the original trajectory began and ends at the current frame, and the second begins at the current frame and ends where the original trajectory ended. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field. After clicking, the user should click on the **Select** button to select the trajectory. To apply the change the user needs to click the **Apply** button. If the user made the mistake of clicking in the **Break** button, the user can cancel it enabling the other modifiers. 
+This button divides the selected trajectory (which is determined by the point clickled in the desired trajecotry to break) at the current frame into two separate trajectories. The first trajectory begins where the original trajectory began and ends at the current frame, and the second begins at the current frame and ends where the original trajectory ended. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field. After clicking, the user should click on the **"Select"** button to select the trajectory. To apply the change the user needs to click the **"Apply"** button. If the user made the mistake of clicking in the **"Break"** button, the user can cancel it enabling the other modifiers. 
 
 > Even though it is possible to insert manually in the input box, the function will only work properly when clickled directly at the desired point in the trajectory.
   
@@ -113,7 +113,7 @@ This button divides the selected trajectory (which is determined by the point cl
 ---
 
 #### **Join**
-This button connects the two selected trajectories (which is determined by the values inside the "Trajectory 1" and "Trajectory 2"). After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field, which next the user must click on the **Select** button, and repeting the process for the second trajectory. **However, the trajectories can only be clicked when active at the frame, meaning, case the second trajectory is not visible, the user needs to use the slider or click **Play** or **Fast-Forward** to push the video (frames) forward**. To apply the change the user needs to click the "Apply" button. If the user made the mistake of clicking in the **Join** button, the user can cancel it enabling the other modifiers. After joining has been applied, the resulting trajectory begins where "Trajectory 1" started and ends where "Trajectory 2" ends. 
+This button connects the two selected trajectories (which is determined by the values inside the "Trajectory 1" and "Trajectory 2"). After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field, which next the user must click on the **"Select"** button, and repeting the process for the second trajectory. **However, the trajectories can only be clicked when active at the frame, meaning, case the second trajectory is not visible, the user needs to use the slider or click **"Play"** or **"Fast-Forward"** to push the video (frames) forward**. To apply the change the user needs to click the **"Apply"** button. If the user made the mistake of clicking in the **"Join"** button, the user can cancel it enabling the other modifiers. After joining has been applied, the resulting trajectory begins where "Trajectory 1" started and ends where "Trajectory 2" ends. 
 
 ##### Summarized Steps
 1. Trajectory Selection:
@@ -130,7 +130,7 @@ This button connects the two selected trajectories (which is determined by the v
 ---
 
 #### **Delete**
-This button deletes the selected trajectory (which is determined by the trajectory number inside of the "Trajectory 1" textbox) from the current frame onwards. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field. After clicking, the user should click on the "Select" button to select the trajectory. To apply the change the user needs to click the "Apply" button. If the user made the mistake of clicking in the **Delete** button, the user can cancel it enabling the other modifiers.
+This button deletes the selected trajectory (which is determined by the trajectory number inside of the "Trajectory 1" textbox) from the current frame onwards. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field. After clicking, the user should click on the **"Select"** button to select the trajectory. To apply the change the user needs to click the **"Apply"** button. If the user made the mistake of clicking in the **"Delete"** button, the user can cancel it enabling the other modifiers.
 
 ##### Summarized Steps
 1. Trajectory Selection:
@@ -146,7 +146,7 @@ This button deletes the selected trajectory (which is determined by the trajecto
 ---
 
 #### **Disentangle**
-This button swaps two overlapping trajectories after a certain frame to correct misidentified paths. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field, which next the user must click on the **Select** button. **FOR THE 2nd TRAJECTORY** the user must click on the point to disentangle in the the trajectory, which will also include the trajectory ID on the input field, which the user must click the **Select** button afterwards. To apply the change the user needs to click the "Apply" button. If the user made the mistake of clicking in the **Disentangle** button, the user can cancel it enabling the other modifiers. 
+This button swaps two overlapping trajectories after a certain frame to correct misidentified paths. After pressing the button, the UI will update prompting an input field insert the ID of the desired trajectory to modify. This can also be accomplished by clicking directy at the trajectory, which will directly input the trajectory ID into the input field, which next the user must click on the **"Select"** button. **FOR THE 2nd TRAJECTORY** the user must click on the point to disentangle in the the trajectory, which will also include the trajectory ID on the input field, which the user must click the **"Select"** button afterwards. To apply the change the user needs to click the **"Apply"** button. If the user made the mistake of clicking in the **"Disentangle"** button, the user can cancel it enabling the other modifiers. 
 
 > Even though it is possible to insert manually in the input box for the 2nd trajectory, the function will only work properly when manually inout the ID in the input field.
 
@@ -180,8 +180,8 @@ The application allows users to manually log errors encountered during labeling.
 
 ## Playground
 In the `resources/config` directory, users can find an example to test the trajectory modifiers. In the UI's dropdown menu, select `example_small_data.avi`, then import `example_small_data.toml`.
-`original_data/example_small_data.toml`
-`videos/example_small_data.avi`
+ - `original_data/example_small_data.toml`
+ - `videos/example_small_data.avi`
 
 ## License
 [Apache 2.0 License](../LICENSE)
