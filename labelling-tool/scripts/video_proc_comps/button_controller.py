@@ -256,7 +256,7 @@ class ButtonController():
                         self.highlight_selected_button(self.prev_operation_btn)
 
             if not red_circle_found:
-                QMessageBox.warning(self.trajectory_controls, "Warning", "A new trajectory as not been draw! After finished click on Apply, else cancel the action.")
+                QMessageBox.warning(self.trajectory_controls, "Warning", "A new trajectory has not been draw! After finished click on Apply, else cancel the action.")
         else:
             self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
             self.highlight_selected_button(self.prev_operation_btn)

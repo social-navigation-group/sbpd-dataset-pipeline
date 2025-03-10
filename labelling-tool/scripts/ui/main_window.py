@@ -90,6 +90,12 @@ class MainWindow(QMainWindow):
                 
                 for btn_functions in self.tab_dialog.trajectory_controls.buttons:
                     btn_functions.setEnabled(True)
+                    
+                if hasattr(self.tab_dialog, 'human_controls'):
+                    self.tab_dialog.human_controls.startIDinput.setEnabled(True)
+                    self.tab_dialog.human_controls.startButton.setEnabled(True)
+                    # for btn in self.tab_dialog.human_controls.buttons:
+                    #     btn.setEnabled(True)
 
                 self.fully_loaded = True
                 self.tab_dialog.trajectory_controls.log_labeling.setEnabled(True)
