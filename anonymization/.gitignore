@@ -1,0 +1,4 @@
+trajectories/
+videos/
+videos_anonymized/
+*.pt
