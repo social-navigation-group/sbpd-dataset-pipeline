@@ -373,8 +373,16 @@ class ButtonController():
         trajectories2 = self.trajectory_manager.trajectories[humanID2]
         
         traj_end1 = traj_start1 + len(trajectories1) - 1
+        traj_end2 = traj_start2 + len(trajectories2) - 1
 
         if traj_start2 <= traj_end1:
+
+            if traj_end2 <= traj_end1:
+                #QMessageBox.warning(self.trajectory_controls, "Warning", "Trajectory 2 is included in Trajectory 1.")
+                log_info(f"Trajectory {humanID2} is included in Trajectory {humanID1}.")
+                self.delete_func(humanID2)
+                return
+
             tmp_traj_len = traj_end1 - traj_start2 + 1
             tmp_traj = []
 
@@ -409,6 +417,9 @@ class ButtonController():
         """Delete function: delete trajectory."""
         self.backup()
         self.trajectory_manager.remove_trajectory(humanID)
+
+        log_info(f"Trajectory {humanID} was deleted.")
+
         self.trajectory_manager.clear_selection()
     
     def disentangle_func(self, humanID1, humanID2, startFrame):
@@ -429,6 +440,8 @@ class ButtonController():
         self.backup()
         self.trajectory_manager.set_newValues(humanID1, traj_start1, trajectories1_new)
         self.trajectory_manager.set_newValues(humanID2, traj_start2, trajectories2_new)
+
+        log_info(f"Trajectory {humanID1} and {humanID2} were disentangled.")
         
         self.trajectory_manager.clear_selection()
         self.mode = 0
@@ -449,6 +462,8 @@ class ButtonController():
         
         self.trajectory_manager.clear_selection()
         self.highlight_selected_button(self.prev_operation_btn)
+
+        log_info("Undo Complete.")
 
         self.mode = 0
         self.trajectory_manager.updateFrame.emit(self.startFrame)
