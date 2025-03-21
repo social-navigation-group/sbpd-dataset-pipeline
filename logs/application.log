@@ -1,0 +1,27 @@
+2025-03-20 18:22:44,874 - INFO - Loaded stylesheet: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/styles.qss
+2025-03-20 18:22:44,910 - INFO - Found 3 video files in /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/videos
+2025-03-20 18:22:44,911 - INFO - Loaded rewind icon: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/icons/rewind/rewind-60.png
+2025-03-20 18:22:44,913 - INFO - Loaded play icon: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/icons/play/play-60.png
+2025-03-20 18:22:44,914 - INFO - Loaded stop icon: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/icons/stop/stop-60.png
+2025-03-20 18:22:44,914 - INFO - Loaded fast-forward icon: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/icons/fast-forward/forward-60.png
+2025-03-20 18:22:52,561 - INFO - User selected video file: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/videos/example_small_data.avi
+2025-03-20 18:22:52,562 - INFO - Loading video: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/videos/example_small_data.avi (Size: 69.60 MB)
+2025-03-20 18:22:52,565 - INFO - Video Loaded: /home/allanwan/dataset/sbpd-dataset-pipeline/labelling-tool/resources/videos/example_small_data.avi | FPS: 30 | Resolution: 1280x1024 | Total Frames: 751
+2025-03-20 18:23:13,479 - INFO - Join button was pushed
+2025-03-20 18:23:15,127 - INFO - Click a trajectory or input trajectory ID.
+2025-03-20 18:23:17,479 - INFO - Click the second trajectory or input the ID.
+2025-03-20 18:23:21,805 - INFO - Selecting trajectories was done.
+2025-03-20 18:23:21,815 - INFO - Deleted trajectory ID: 7
+2025-03-20 18:23:21,815 - INFO - No.3 and No.7 are joined into No.3.
+2025-03-20 18:23:33,023 - INFO - Missing button was pushed.
+2025-03-20 18:23:36,679 - INFO - Mapped pixel coordinates: (x = 596, y = 592)
+2025-03-20 18:23:37,684 - INFO - Mapped pixel coordinates: (x = 619, y = 559)
+2025-03-20 18:23:38,495 - INFO - Mapped pixel coordinates: (x = 636, y = 524)
+2025-03-20 18:23:40,899 - INFO - Added missed person: 7
+2025-03-20 18:23:49,896 - INFO - Join button was pushed
+2025-03-20 18:23:52,065 - INFO - Click a trajectory or input trajectory ID.
+2025-03-20 18:23:55,244 - INFO - Click the second trajectory or input the ID.
+2025-03-20 18:23:57,037 - INFO - Selecting trajectories was done.
+2025-03-20 18:23:57,037 - INFO - Trajectory 7 is included in Trajectory 3.
+2025-03-20 18:23:57,048 - INFO - Deleted trajectory ID: 7
+2025-03-20 18:23:57,048 - INFO - Trajectory 7 was deleted.
