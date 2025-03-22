@@ -18,7 +18,7 @@ Install the following packages
 ```
 pip install numpy toml pyyaml numpy opencv-python ultralytics
 ```
-Download the `yolo11x.pt` checkpoint file from ultralytics
+Download the `yolo11x.pt` checkpoint file from [ultralytics](https://github.com/ultralytics)
 ```
 wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt
 ```
