@@ -1,11 +1,11 @@
 # Anonymization (Current)
 
 ## Overview
-The anonymization process is straightforward, though the scripts can be optimized further (including the method). For now, we’ll proceed with the current approach, with plans to make it more robust and reliable in the future. What do you need to do:
+The codes in this folder are for anonymizing videos (Both FPV and BEV videos) and produce automatically tracked trajectories for pedestrians.
 
-- Obtain the video you want to anonymize.
-- Download the required model.
-- Input the correct file paths into each script.
-- Run the first script (yolo_tracking.py) to initiate tracking - get bbox coordinates.
-- Run the second script (write_bbox.py) to complete the anonymization.
-- Once completed, you’ll have the final anonymized video.
+To use these codes:
+1. Place all the raw videos in the "videos" folder.
+2. If you would like to define an area within the videos for producing trajectories individually, run `define_area.py`
+3. Run `anonymize_and_track.py`. 
+
+## Detailed Explanations
