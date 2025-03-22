@@ -7,6 +7,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Define area of interest for tracking for a single video")
     parser.add_argument("--video", type=str, required=True, help="Path to the video folder")
     parser.add_argument("--area_path", default="./areas", type=str, help="Path to the area of interest folder")
+    parser.add_argument("--scale", default=1.0, type=float, help="Scale factor for display")
 
     args = parser.parse_args()
 
@@ -21,11 +22,16 @@ def get_args():
     elif not os.path.isdir(args.area_path):
         print(f"ERROR: The area path {args.area_path} is not a folder.")
         exit(1)
+    if args.scale <= 0:
+        print("ERROR: The scale factor must be positive.")
+        exit(1)
     return args
 
-def select_area(frame):
+def select_area(frame, scale=1.0):
     window_name = "Select Area of Interest (At least 3 points)"
     cv2.namedWindow(window_name)
+    frame = cv2.resize(frame, (0, 0), fx=scale, fy=scale)
+
     area = []
     cv2.imshow(window_name, frame)
 
@@ -34,7 +40,8 @@ def select_area(frame):
         if event == cv2.EVENT_LBUTTONDOWN:
             area.append((x, y))
         elif event == cv2.EVENT_RBUTTONDOWN:
-            area.pop()
+            if len(area) > 0:
+                area.pop()
         for point in area:
             cv2.circle(frame_copy, point, 5, (0, 255, 0), -1)
         cv2.imshow(window_name, frame_copy)
@@ -54,6 +61,9 @@ def select_area(frame):
     if len(area) < 3:
         print("ERROR: At least 3 points are needed to define the area of interest.")
         exit(1)
+    
+    for i in range(len(area)):
+        area[i] = (int(area[i][0] / scale), int(area[i][1] / scale))
     return area
 
 def main(args):
@@ -69,7 +79,7 @@ def main(args):
         print(f"ERROR: Cannot read video {args.video}")
         exit(1)
 
-    area = select_area(frame)
+    area = select_area(frame, args.scale)
     cap.release()
 
     with open(area_path, "w") as f:

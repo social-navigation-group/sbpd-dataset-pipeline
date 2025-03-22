@@ -31,10 +31,14 @@ def get_args():
     # Tracking parameters
     parser.add_argument("--no-track", action="store_true", help="Do not track objects")
     parser.add_argument("--restrict-area", action="store_true", help="Restrict tracking to a specific area")
+    parser.add_argument("--scale", default=1.0, type=float, help="Scale factor for display")
     parser.add_argument("--persist", action="store_true", help="Persist tracking")
     parser.add_argument("--iou", default=0.8, type=float, help="IoU threshold for tracking")
     parser.add_argument("--tracker", default="bytetrack.yaml", type=str, help="Tracker configuration file") # No need to download this yaml
     parser.add_argument("--smooth-len", default=7, type=int, help="Length of the smoothing window")
+    # If the pedestrians feet cannot be seen, their trajectories will still be recorded at the bottom of the screen.
+    # This parameter allows to ignore these trajectories.
+    parser.add_argument("--boundary-width", default=10, type=int, help="Ignore trajectories within boundary width of the bottom of the frame")
 
     # Trajectory options
     parser.add_argument("--traj-fps", default=10, type=int, help="Fps of the trajectories")
@@ -65,6 +69,18 @@ def get_args():
         elif not os.path.isdir(args.area_path):
             print(f"ERROR: The area path {args.area_path} is not a folder.")
             exit(1)
+        if args.scale <= 0:
+            print("ERROR: The scale factor must be positive.")
+            exit(1)
+    if args.blur_pct < 0 or args.blur_pct > 1:
+        print("ERROR: The blur percentage must be between 0 and 1.")
+        exit(1)
+    if args.blur_min < 0:
+        print("ERROR: The minimum blur pixels must be non-negative.")
+        exit(1)
+    if args.bounds_width < 0:
+        print("ERROR: The boundary width must be non-negative.")
+        exit(1)
     return args
 
 def main(args):
@@ -137,7 +153,7 @@ def main(args):
                         area = yaml.load(f, Loader=yaml.FullLoader)
                 else:
                     # Use matplotlib to select points until right click TODO
-                    area = select_area(frame)
+                    area = select_area(frame, args.scale)
                     with open(area_path, 'w') as f:
                         yaml.dump(area, f)
                 area = np.array(area, np.int32)
@@ -162,7 +178,9 @@ def main(args):
                         object_id = int(box.id[0]) if box.id is not None else -1
                         human_name = f"human{object_id}"
 
-                        if (object_id != -1) and ((not args.restrict_area) or (cv2.pointPolygonTest(area, (coordinate[0], coordinate[1]), False) == True)):
+                        if (object_id != -1) and \
+                            ((not args.restrict_area) or (cv2.pointPolygonTest(area, (coordinate[0], coordinate[1]), False) == True)) and \
+                            (coordinate[1] < frame_height - args.boundary_width):
                             if (object_id not in id_list):
                                 id_list.append(object_id)
                                 trajectory_dict[human_name] = {}

@@ -42,6 +42,10 @@ If `restrict-area` is turned on, it will attempt to read the area yaml file save
 
 You can also use `define_area.py` to define the tracking area for each video file individually.
 
+## Tips
+- In both python files, scale can be helpful if the video resolution is marger than the screen resolution.
+- For `restrict-area`, area selection should be focused on pedestrians' footing area.
+
 ## Connect to labelling-tool
 
 Go to the "trajectories" folder. Copy the toml files to `<path to labelling-tool>/resources/config/original_data` and the video files to `<path to labelling-tool>/resources/videos`. Then please refer to leblling-tool's readme for further instructions.
