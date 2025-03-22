@@ -48,4 +48,4 @@ You can also use `define_area.py` to define the tracking area for each video fil
 
 ## Connect to labelling-tool
 
-Go to the "trajectories" folder. Copy the toml files to `<path to labelling-tool>/resources/config/original_data` and the video files to `<path to labelling-tool>/resources/videos`. Then please refer to leblling-tool's readme for further instructions.
+Go to the "trajectories" folder. Copy the toml files to `<path to labelling-tool>/resources/config/original_data` and the video files to `<path to labelling-tool>/resources/videos`. Then please refer to labeling-tool's readme for further instructions.
