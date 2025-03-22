@@ -1,4 +1,5 @@
 trajectories/
 videos/
 videos_anonymized/
+areas/
 *.pt
