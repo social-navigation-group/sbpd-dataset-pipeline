@@ -1,6 +1,7 @@
 *.avi
 *.tar
 *.toml
+*.yaml
 *.mp4
 *.mov
 *.MP4
