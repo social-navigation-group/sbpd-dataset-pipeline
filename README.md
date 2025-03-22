@@ -1,6 +1,8 @@
 # dataset-pipeline
 <!-- A.K.A. World's Largest Pedestrian Dataset (WLPD) -->
 
+Please check each individual folders for detailed readme.
+
 ### Developer Certificate of Origin (DCO)
 
 The developer need to add a Signed-off-by statement and thereby agrees to the DCO, which you can find below. You can add either -s or --signoff to your usual git commit commands. If Signed-off-by is attached to the commit message, it is regarded as agreed to the Developer's Certificate of Origin 1.1.
