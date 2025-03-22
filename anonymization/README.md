@@ -41,3 +41,7 @@ Notable Options:
 If `restrict-area` is turned on, it will attempt to read the area yaml file saved in the "areas" folder. For each video file, it will look for the yaml file with the same name. If it doesn't exist, it will call the `select_area` function in `define_area.py` and ask you to select the points to define the area.
 
 You can also use `define_area.py` to define the tracking area for each video file individually.
+
+## Connect to labelling-tool
+
+Go to the "trajectories" folder. Copy the toml files to `<path to labelling-tool>/resources/config/original_data` and the video files to `<path to labelling-tool>/resources/videos`. Then please refer to leblling-tool's readme for further instructions.

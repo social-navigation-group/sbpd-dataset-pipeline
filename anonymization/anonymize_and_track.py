@@ -23,14 +23,15 @@ def get_args():
     parser.add_argument("--no-blur", action="store_true", help="Do not anonymize the video (highest priority argument)")
     parser.add_argument("--blur-all", action="store_true", help="Blur entire video frames")
     parser.add_argument("--blur-black", action="store_true", help="Paint everything black")
+    parser.add_argument("--shallow-size", default=25, type=int, help="Size of the shallow blur kernel for full frame anonymization")
     parser.add_argument("--blur-size", default=41, type=int, help="Size of the blur kernel")
     parser.add_argument("--blur-pct", default=0.5, type=float, help="Percentage of the bounding box to blur")
     parser.add_argument("--blur-min", default=25, type=int, help="Minimum pixels of the bounding box to blur")
 
     # Tracking parameters
     parser.add_argument("--no-track", action="store_true", help="Do not track objects")
-    parser.add_argument("--persist", action="store_true", help="Persist tracking")
     parser.add_argument("--restrict-area", action="store_true", help="Restrict tracking to a specific area")
+    parser.add_argument("--persist", action="store_true", help="Persist tracking")
     parser.add_argument("--iou", default=0.8, type=float, help="IoU threshold for tracking")
     parser.add_argument("--tracker", default="bytetrack.yaml", type=str, help="Tracker configuration file") # No need to download this yaml
     parser.add_argument("--smooth-len", default=7, type=int, help="Length of the smoothing window")
@@ -172,7 +173,7 @@ def main(args):
                                 trajectory_dict[human_name]["trajectories"].append(coordinate)
             
             if (args.blur_all) and (not args.no_blur):
-                save_frame = cv2.GaussianBlur(save_frame, (args.blur_size, args.blur_size), 0)
+                save_frame = cv2.GaussianBlur(save_frame, (args.shallow_size, args.shallow_size), 0)
 
             if (not args.no_track) and ((frame_id - 1) % interval == 0):
                 if args.restrict_area:

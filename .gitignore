@@ -6,3 +6,5 @@
 *.MP4
 *.AVI
 *.MOV
+
+logs/
