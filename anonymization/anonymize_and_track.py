@@ -78,7 +78,7 @@ def get_args():
     if args.blur_min < 0:
         print("ERROR: The minimum blur pixels must be non-negative.")
         exit(1)
-    if args.bounds_width < 0:
+    if args.boundary_width < 0:
         print("ERROR: The boundary width must be non-negative.")
         exit(1)
     return args
@@ -88,7 +88,9 @@ def main(args):
 
     for video_file in os.listdir(args.video):
         video_test_file = video_file.lower()
-        if (not video_test_file.endswith(".mp4")) and (not video_test_file.endswith(".avi")):
+        if (not video_test_file.endswith(".mp4")) and \
+            (not video_test_file.endswith(".avi")) and \
+            (not video_test_file.endswith(".mov")):
             continue
 
         # Process paths
@@ -97,10 +99,7 @@ def main(args):
         if not args.no_blur:
             output_path = os.path.join(args.output, video_file)
         if not args.no_track:
-            if video_test_file.endswith(".mp4"):
-                traj_fname = video_test_file.replace(".mp4", ".toml")
-            else:
-                traj_fname = video_test_file.replace(".avi", ".toml")
+            traj_fname = os.path.splitext(video_file)[0] + ".toml"
             trajectory_path = os.path.join(args.trajectory_output, traj_fname)
             trajectory_video_path = os.path.join(args.trajectory_output, video_file)
         if args.restrict_area:
