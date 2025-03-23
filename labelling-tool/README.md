@@ -25,6 +25,12 @@ pip install --upgrade pip
 - numpy
 - pyqt6
 ```
+
+Create the following folders
+```
+mkdir resources/config/original_data resources/videos
+```
+
 > **Note:** This application has been tested on **Linux**. Compatibility with Windows or macOS has not been verified.
 
 ## File Structure

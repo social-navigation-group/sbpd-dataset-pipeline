@@ -22,6 +22,10 @@ Download the `yolo11x.pt` checkpoint file from [ultralytics](https://github.com/
 ```
 wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt
 ```
+Create the following folders
+```
+mkdir videos areas trajectories videos_anonymized
+```
 
 ## Detailed Explanations
 
