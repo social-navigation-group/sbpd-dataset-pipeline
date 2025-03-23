@@ -2,4 +2,6 @@ trajectories/
 videos/
 videos_anonymized/
 areas/
+__pycache__/
+*.pyc
 *.pt

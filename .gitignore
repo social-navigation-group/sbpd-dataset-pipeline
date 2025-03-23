@@ -6,6 +6,7 @@
 *.mov
 *.MP4
 *.AVI
+*.pyc
 *.MOV
 
 logs/
