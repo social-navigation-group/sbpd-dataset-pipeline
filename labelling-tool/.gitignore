@@ -5,3 +5,5 @@ __pycache__/
 resources/config/*.txt
 
 logs/
+resources/videos/
+resources/config/original_data/

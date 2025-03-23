@@ -5,3 +5,11 @@ areas/
 __pycache__/
 *.pyc
 *.pt
+
+*.toml
+*.yaml
+*.mp4
+*.mov
+*.MP4
+*.AVI
+*.MOV
