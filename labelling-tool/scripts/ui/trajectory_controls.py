@@ -1,4 +1,5 @@
 import os
+from PyQt6.QtCore import Qt
 from datetime import datetime
 from utils.logging_utils import log_info
 from video_proc_comps.button_controller import ButtonController
@@ -135,6 +136,7 @@ class TrajectoryControls(QWidget):
         """)
 
         self.select_button.clicked.connect(self.button_controller.on_select_pressed)
+        self.select_button.setShortcut(Qt.Key.Key_Return)
         horizontal_layout.addWidget(self.select_button)
         labeling_layout.insertLayout(1, horizontal_layout)
 
@@ -157,12 +159,14 @@ class TrajectoryControls(QWidget):
         """)
         self.apply_button.setEnabled(False)
         self.apply_button.clicked.connect(self.button_controller.on_apply_pressed)
+        self.apply_button.setShortcut(Qt.Key.Key_Return)
         labeling_layout.insertWidget(widget_position, self.apply_button)
     
     def create_cancel_button(self, labeling_layout, widget_position):
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.setStyleSheet("background-color: red;")
         self.cancel_button.clicked.connect(self.button_controller.on_cancel_pressed)
+        self.cancel_button.setShortcut(Qt.Key.Key_Escape)
         labeling_layout.insertWidget(widget_position, self.cancel_button)
     
     def delete_trajID_input(self, labeling_layout, mode):

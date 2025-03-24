@@ -256,3 +256,9 @@ class VideoPlayer(QWidget):
     def forward(self, speed = 4):
         """Starts fast-forwarding at the given speed."""
         self.change_playback_mode(PlaybackMode.FORWARDING, speed = speed)
+    
+    def one_frame_forward(self):
+        self.show_frame_at(self.current_frame + 1)
+    
+    def one_frame_back(self):
+        self.show_frame_at(self.current_frame - 1)
