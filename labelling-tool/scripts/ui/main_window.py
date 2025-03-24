@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
                 self.video_controls.video_player.update_human_config(self.trajectory_file)
                 QMessageBox.information(self, "Success", "Trajectory data updated in Video Player.")
 
-                for btn in [self.video_controls.rewind_button, self.video_controls.play_pause_button, self.video_controls.stop_button, self.video_controls.forward_button, self.video_controls.video_dropdown]: 
+                for btn in [self.video_controls.rewind_button, self.video_controls.play_pause_button, self.video_controls.stop_button, self.video_controls.forward_button, self.video_controls.video_dropdown, self.video_controls.frame_forward, self.video_controls.frame_back]: 
                     btn.setEnabled(True)
                 self.video_controls.frame_slider.setEnabled(True)
                 self.save_action.setEnabled(True)
@@ -94,9 +94,6 @@ class MainWindow(QMainWindow):
                 if hasattr(self.tab_dialog, 'human_controls'):
                     self.tab_dialog.human_controls.startIDinput.setEnabled(True)
                     self.tab_dialog.human_controls.startButton.setEnabled(True)
-                    # for btn in self.tab_dialog.human_controls.buttons:
-                    #     btn.setEnabled(True)
-
                 self.fully_loaded = True
                 self.tab_dialog.trajectory_controls.log_labeling.setEnabled(True)
             except Exception as e:

@@ -56,11 +56,20 @@ class VideoControls(QWidget):
         self.rewind_button = self.create_button(self.resource_manager.get_icon("rewind", "rewind-60"), self.toggle_to_rewind)
         self.play_pause_button = self.create_button(self.resource_manager.get_icon("play", "play-60"), self.toggle_to_play)
         self.stop_button = self.create_button(self.resource_manager.get_icon("stop", "stop-60"), self.toggle_to_stop)
-        self.forward_button = self.create_button(self.resource_manager.get_icon("fast-forward", "forward-60"), self.toggle_to_forward)
+        self.forward_button = self.create_button(self.resource_manager.get_icon("fast-forward", "forward-60"), self.toggle_to_fast_forward)
+
+        self.frame_forward = self.create_button(self.resource_manager.get_icon("plus", "plus-60"), self.press_to_move_a_frame_forward)
+        self.frame_back = self.create_button(self.resource_manager.get_icon("minus", "minus-60"), self.press_to_move_a_frame_back)
         # self.upload_button = self.create_button(self.resource_manager.get_icon("upload", "upload-60"), self.load_video)
 
+        # SHORTCUTS (HOTKEYS)
+        self.stop_button.setShortcut(Qt.Key.Key_S)
+        self.frame_back.setShortcut(Qt.Key.Key_Left)
+        self.frame_forward.setShortcut(Qt.Key.Key_Right)
+        self.play_pause_button.setShortcut(Qt.Key.Key_Space)
+
         playback_controls = QHBoxLayout()
-        for btn in [self.rewind_button, self.play_pause_button, self.stop_button, self.forward_button, self.video_dropdown]: #, self.upload_button
+        for btn in [self.rewind_button, self.play_pause_button, self.stop_button, self.forward_button, self.frame_forward, self.frame_back, self.video_dropdown]:
             playback_controls.addWidget(btn)
             if btn == self.forward_button:
                 playback_controls.addStretch(1)
@@ -133,7 +142,7 @@ class VideoControls(QWidget):
             self.video_player.rewind()
             self.play_pause_button.setIcon(QIcon(self.resource_manager.get_icon("pause", "pause-60")))
 
-    def toggle_to_forward(self):
+    def toggle_to_fast_forward(self):
         """Toggles between fast forward and stop."""
         if self.video_player.playback_mode == PlaybackMode.FORWARDING:
             self.video_player.pause()
@@ -146,7 +155,7 @@ class VideoControls(QWidget):
         """Stops playback and resets to the first frame."""
         self.video_player.stop()
         self.video_player.trajectory_worker.overlay_cache.clear()
-        self.video_player.trajectory_overlay = np.zeros((self.video_player.video_height, self.video_player.video_width, 3), dtype=np.uint8)
+        self.video_player.trajectory_overlay = np.zeros((self.video_player.video_height, self.video_player.video_width, 3), dtype = np.uint8)
         self.play_pause_button.setIcon(QIcon(self.resource_manager.get_icon("play", "play-60")))
         self.frame_slider.setValue(0)
 
@@ -155,6 +164,14 @@ class VideoControls(QWidget):
         if self.video_player.cap and self.video_player.cap.isOpened():
             self.video_player.show_frame_at(position)
             self.current_frame_label.setText(str(position))
+    
+    def press_to_move_a_frame_forward(self):
+        if self.video_player.playback_mode == PlaybackMode.STOPPED:
+            self.video_player.one_frame_forward()
+
+    def press_to_move_a_frame_back(self):
+        if self.video_player.playback_mode == PlaybackMode.STOPPED:
+            self.video_player.one_frame_back()
 
     def get_video_player(self):
         return self.video_player
