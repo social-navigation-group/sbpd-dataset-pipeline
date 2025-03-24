@@ -193,5 +193,8 @@ Users can find an example to test the trajectory modifiers in the `resources/con
  - `original_data/example_small_data.toml`
  - `videos/example_small_data.avi`
 
+## Acknowledgments
+The icons used in this project are sourced from [ICONS8](https://icons8.jp) under their free license.
+
 ## License
 [Apache 2.0 License](../LICENSE)
