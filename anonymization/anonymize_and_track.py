@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument("--no-blur", action="store_true", help="Do not anonymize the video (highest priority argument)")
     parser.add_argument("--blur-all", action="store_true", help="Blur entire video frames")
     parser.add_argument("--blur-black", action="store_true", help="Paint everything black")
-    parser.add_argument("--shallow-size", default=25, type=int, help="Size of the shallow blur kernel for full frame anonymization")
+    parser.add_argument("--shallow-size", default=21, type=int, help="Size of the shallow blur kernel for full frame anonymization")
     parser.add_argument("--blur-size", default=41, type=int, help="Size of the blur kernel")
     parser.add_argument("--blur-pct", default=0.5, type=float, help="Percentage of the bounding box to blur")
     parser.add_argument("--blur-min", default=25, type=int, help="Minimum pixels of the bounding box to blur")
@@ -31,9 +31,9 @@ def get_args():
     # Tracking parameters
     parser.add_argument("--no-track", action="store_true", help="Do not track objects")
     parser.add_argument("--restrict-area", action="store_true", help="Restrict tracking to a specific area")
-    parser.add_argument("--scale", default=1.0, type=float, help="Scale factor for display")
+    parser.add_argument("--scale", default=0.5, type=float, help="Scale factor for display")
     parser.add_argument("--persist", action="store_true", help="Persist tracking")
-    parser.add_argument("--iou", default=0.8, type=float, help="IoU threshold for tracking")
+    parser.add_argument("--iou", default=0.7, type=float, help="IoU threshold for tracking")
     parser.add_argument("--tracker", default="bytetrack.yaml", type=str, help="Tracker configuration file") # No need to download this yaml
     parser.add_argument("--smooth-len", default=7, type=int, help="Length of the smoothing window")
     # If the pedestrians feet cannot be seen, their trajectories will still be recorded at the bottom of the screen.

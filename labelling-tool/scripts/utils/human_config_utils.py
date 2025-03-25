@@ -1,9 +1,11 @@
 import toml
+import os
 from .logging_utils import log_info, log_warning
 
 class HumanConfigUtils():
-    def __init__(self):
+    def __init__(self, autosave_path):
         self.human_traj_file = None
+        self.autosave_path = autosave_path
 
     def start_human_traj(self):
         self.dict = self.load_human_config(self.human_traj_file)
@@ -16,6 +18,9 @@ class HumanConfigUtils():
         except FileNotFoundError:
             log_warning(f"Human Config file {path} not found. Using an empty dict")
             return {}
+        
+    def autosave(self):
+        self.save_human_config(os.path.join(self.autosave_path, "autosave.toml"))
     
     def save_human_config(self, path):
         with open(path, 'w') as f:

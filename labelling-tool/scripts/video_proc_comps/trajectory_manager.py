@@ -71,6 +71,8 @@ class TrajectoryManager(QObject):
 
     def clear_selection(self):
         self.selected_trajs = []
+        # NOTE: Possibly not clean but this function is called everywhere (all the buttons)
+        self.human_config.autosave()
         
     def set_newValues(self, traj_id, traj_start, trajectories):
         self.traj_starts[traj_id] = traj_start

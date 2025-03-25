@@ -31,7 +31,7 @@ class VideoPlayer(QWidget):
         self.playback_mode = PlaybackMode.STOPPED 
         self.color_generator = TrajectoryColorGenerator()
 
-        self.human_config = HumanConfigUtils()
+        self.human_config = HumanConfigUtils(resource_manager.config_path)
         self.trajectory_manager = TrajectoryManager(self.human_config, self)
         self.trajectory_manager.updateFrame.connect(self.show_frame_at)
 

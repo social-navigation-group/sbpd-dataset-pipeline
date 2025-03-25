@@ -139,25 +139,29 @@ class ButtonController():
 
         self.trajectory_manager.ID_selected.emit(1)
         self.undo_func()
+
+    def cancel_operation_func(self):
+        """Cancel the current operation."""
+        if self.mode in [1, 2]:
+            for item in self.trajectory_click_handler.graphics_scene.items():
+                if isinstance(item, QGraphicsEllipseItem):
+                    if item.pen().color() == Qt.GlobalColor.red:
+                        self.trajectory_click_handler.graphics_scene.removeItem(item)
+
+        self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
+        self.highlight_selected_button(self.prev_operation_btn)
+        self.trajectory_click_handler.clear_highlight()
+        self.mode = 0
+        self.enable_all_buttons()
+        self.trajectory_manager.isWaitingID = False
+        self.trajectory_manager.isDrawing = False
+        self.lock_first_selection = False
+        self.cancel_operation = False
     
     def on_ID_selected(self):
         """Handles when ID selected (both QLineEdit and mouse click)."""
         if self.cancel_operation:
-            if self.mode in [1, 2]:
-                for item in self.trajectory_click_handler.graphics_scene.items():
-                    if isinstance(item, QGraphicsEllipseItem):
-                        if item.pen().color() == Qt.GlobalColor.red:
-                            self.trajectory_click_handler.graphics_scene.removeItem(item)
-
-            self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
-            self.highlight_selected_button(self.prev_operation_btn)
-            self.trajectory_click_handler.clear_highlight()
-            self.mode = 0
-            self.enable_all_buttons()
-            self.trajectory_manager.isWaitingID = False
-            self.trajectory_manager.isDrawing = False
-            self.lock_first_selection = False
-            self.cancel_operation = False
+            self.cancel_operation_func()
             return
 
         if self.trajectory_manager.get_selected_trajectory() == []:
@@ -286,9 +290,25 @@ class ButtonController():
 
         self.lock_first_selection = False
         self.trajectory_manager.updateFrame.emit(self.startFrame)
+
+    def check_humanID(self, humanID):
+        """Check if the humanID exists in the current frame."""
+        if humanID not in self.trajectory_manager.traj_starts:
+            QMessageBox.warning(self.trajectory_controls, "Warning", f"Trajectory {humanID} does not exist in the current frame.")
+            return False
+        return True
+    
+    def clear(self):
+        self.trajectory_manager.clear_selection()
+        self.mode = 0
+        return
     
     def relabel_func(self, humanID, startFrame, new_trajectories):
         """Relabel function: fix trajectory with drawed trajectory from startFrame."""
+        if self.check_humanID(humanID) == False:
+            self.clear()
+            return
+
         traj_start = self.trajectory_manager.traj_starts[humanID]
         trajectories_old = self.trajectory_manager.trajectories[humanID]
         
@@ -319,9 +339,7 @@ class ButtonController():
         self.trajectory_manager.set_newValues(humanID, traj_start, new_trajectories)
         
         log_info(f"Relabel Complete: {humanID}")
-        
-        self.trajectory_manager.clear_selection()
-        self.mode = 0
+        self.clear()
         
     def missing_func(self, startFrame, new_trajectories):
         """Missing function: add trajecotory with drawed trajectory."""
@@ -330,14 +348,18 @@ class ButtonController():
         self.trajectory_manager.set_newValues(new_trajID, startFrame, new_trajectories)
         
         log_info(f"Added missed person: {new_trajID}")
-        self.trajectory_manager.clear_selection()
-        self.mode = 0
+        self.clear()
     
     def break_func(self, humanID, startFrame):
         """Break function: break into 2 trajectory 
            (former ID is same as old one and latter one is added as new)."""
+        if not self.check_humanID(humanID):
+            self.clear()
+            return
+        
         if startFrame == None:
             QMessageBox.warning(self.trajectory_controls, "Warning", "Please select the frame where you want to break the trajectory.")
+            self.clear()
             return
         
         traj_start_old = self.trajectory_manager.traj_starts[humanID]
@@ -357,11 +379,15 @@ class ButtonController():
         log_debug(f"{traj_start_old} - {startFrame - 1} -> ID: {humanID}")
         log_debug(f"{startFrame} - {startFrame + len(trajectories_new2) - 1} -> ID: {new_trajID}")
         
-        self.trajectory_manager.clear_selection()
+        self.clear()
         
     def join_func(self, humanID1, humanID2):
         """Join function: join 2 trajectories into one.
            + Delete the trajectory data of latter one."""
+        if not self.check_humanID(humanID1) or not self.check_humanID(humanID2):
+            self.clear()
+            return
+
         traj_start1 = self.trajectory_manager.traj_starts[humanID1]
         traj_start2 = self.trajectory_manager.traj_starts[humanID2]
 
@@ -409,23 +435,29 @@ class ButtonController():
         self.trajectory_manager.remove_trajectory(humanID2)
         
         log_info(f"No.{humanID1} and No.{humanID2} are joined into No.{humanID1}.")
-        
-        self.trajectory_manager.clear_selection()
-        self.mode = 0
+        self.clear()
         
     def delete_func(self, humanID):
         """Delete function: delete trajectory."""
+        if not self.check_humanID(humanID):
+            self.clear()
+            return
+        
         self.backup()
         self.trajectory_manager.remove_trajectory(humanID)
 
         log_info(f"Trajectory {humanID} was deleted.")
-
-        self.trajectory_manager.clear_selection()
+        self.clear()
     
     def disentangle_func(self, humanID1, humanID2, startFrame):
         """Disentangle function: swap two trajectories after the startFrame"""
         if startFrame == None:
             QMessageBox.warning(self.trajectory_controls, "Warning", "Please select the frame where you want to break the trajectory.")
+            self.clear()
+            return
+        
+        if not self.check_humanID(humanID1) or not self.check_humanID(humanID2):
+            self.clear()
             return
         
         traj_start1 = self.trajectory_manager.traj_starts[humanID1]
@@ -442,16 +474,13 @@ class ButtonController():
         self.trajectory_manager.set_newValues(humanID2, traj_start2, trajectories2_new)
 
         log_info(f"Trajectory {humanID1} and {humanID2} were disentangled.")
-        
-        self.trajectory_manager.clear_selection()
-        self.mode = 0
+        self.clear()
 
     def undo_func(self):
         """Undo function: reverse human_config to former one."""
         if not self.human_config_backup:
             QMessageBox.warning(self.trajectory_controls, "Warning", "Nothing to undo! No changes have been done to undo.")
-            self.trajectory_manager.clear_selection()
-            self.mode = 0
+            self.clear()
             return
         
         self.highlight_selected_button(6)
@@ -464,9 +493,7 @@ class ButtonController():
         self.highlight_selected_button(self.prev_operation_btn)
 
         log_info("Undo Complete.")
-
-        self.mode = 0
-        self.trajectory_manager.updateFrame.emit(self.startFrame)
+        self.clear()
         
     def backup(self):
         """Make backup of human_config for Undo."""
