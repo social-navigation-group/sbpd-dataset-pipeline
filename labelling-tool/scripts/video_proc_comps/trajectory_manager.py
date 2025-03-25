@@ -10,6 +10,7 @@ class TrajectoryManager(QObject):
     def __init__(self, human_config, parent = None):
         super().__init__(parent)
         UNDO_LIMIT = 10
+        self.frame_skip = 10
         self.traj_starts = {}
         self.trajectories = {}
         self.selected_trajs = []
@@ -87,9 +88,9 @@ class TrajectoryManager(QObject):
             self.trajectory_now.append([new_x, new_y])
         else:
             (last_x, last_y) = self.trajectory_now[-1]
-            for i in range(30):
-                temp_x = last_x + (new_x - last_x) / 30 * (i + 1)
-                temp_y = last_y + (new_y - last_y) / 30 * (i + 1)
+            for i in range(self.frame_skip):
+                temp_x = last_x + (new_x - last_x) / self.frame_skip * (i + 1)
+                temp_y = last_y + (new_y - last_y) / self.frame_skip * (i + 1)
                 self.trajectory_now.append([temp_x, temp_y])
         return
 

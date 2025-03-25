@@ -40,7 +40,7 @@ class TrajectoryClickHandler(QGraphicsView):
                         log_info(f"Mapped pixel coordinates: (x = {orig_x}, y = {orig_y})")
                         
                         self.trajectory_manager.store_newTrajectory(orig_x, orig_y)
-                        self.trajectory_manager.updateFrame.emit(self.current_frame + 10)
+                        self.trajectory_manager.updateFrame.emit(self.current_frame + self.trajectory_manager.frame_skip)
                         return
                 return
 
