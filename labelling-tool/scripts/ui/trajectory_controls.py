@@ -1,13 +1,16 @@
 import os
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from datetime import datetime
 from utils.logging_utils import log_info
 from video_proc_comps.button_controller import ButtonController
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QLabel, QLineEdit, QGroupBox
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QLabel, QLineEdit, QGroupBox, QSlider, QCheckBox
 )
 
 class TrajectoryControls(QWidget):
+    time_window_changed = pyqtSignal(int)
+    time_window_enabled_changed = pyqtSignal(bool)
+
     def __init__(self, video_player, parent: QWidget):
         super().__init__(parent)
         self.video_player = video_player
@@ -33,10 +36,33 @@ class TrajectoryControls(QWidget):
 
         traj_edit_group.setLayout(traj_edit_layout)
 
-        self.log_labeling = QTextEdit()
-        self.log_labeling.setPlaceholderText("Log the labeling here if needed...")
-        self.log_submit_button = QPushButton()
-        self.log_submit_button.setText("Submit")
+        time_window_group = QGroupBox("Time Window: ")
+        time_window_layout = QHBoxLayout()
+
+        self.time_window_checkbox = QCheckBox()
+        self.time_window_checkbox.setChecked(True)
+        self.time_window_checkbox.setEnabled(False)
+        self.time_window_checkbox.stateChanged.connect(self.emit_time_window_enabled_changed)
+
+        self.time_window_label = QLabel()
+        self.time_window_label.setText("5 seconds")
+
+        self.time_window_slider = QSlider(Qt.Orientation.Horizontal)
+        self.time_window_slider.setValue(5)
+        self.time_window_slider.setMinimum(5)
+        self.time_window_slider.setMaximum(60)
+        self.time_window_slider.setPageStep(5)
+        self.time_window_slider.setSingleStep(5)
+        self.time_window_slider.setEnabled(False)
+        self.time_window_slider.setTickInterval(5)
+        self.time_window_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+
+        self.time_window_slider.sliderReleased.connect(self.snap_to_nearest_step)        
+
+        time_window_layout.addWidget(self.time_window_checkbox)
+        time_window_layout.addWidget(self.time_window_slider)
+        time_window_layout.addWidget(self.time_window_label)
+        time_window_group.setLayout(time_window_layout)
 
         traj_log_group = QGroupBox("Error Logging: ")
         traj_log_layout = QVBoxLayout()
@@ -57,6 +83,7 @@ class TrajectoryControls(QWidget):
 
         labeling_layout = QVBoxLayout()
         labeling_layout.addWidget(traj_edit_group)
+        labeling_layout.addWidget(time_window_group)
         labeling_layout.addWidget(traj_log_group)
 
         return labeling_layout
@@ -206,3 +233,26 @@ class TrajectoryControls(QWidget):
                     if sub_widget:
                         sub_widget.deleteLater()
                 layout.deleteLater()  
+
+    def get_time_window_seconds(self):
+        return self.time_window_slider.value()
+    
+    def update_time_window_label(self):
+        value = self.time_window_slider.value()
+        self.time_window_label.setText(f"{value} seconds")
+
+    def snap_to_nearest_step(self):
+        current_value = self.time_window_slider.value()
+        snapped_value = round(current_value / 5) * 5
+        self.time_window_slider.setValue(snapped_value)  
+        self.update_time_window_label()
+        self.time_window_changed.emit(snapped_value)
+
+    def is_time_window_enabled(self):
+        return self.time_window_checkbox.isChecked()
+    
+    def emit_time_window_enabled_changed(self):
+        enabled = self.time_window_checkbox.isChecked()
+        self.time_window_slider.setEnabled(enabled)
+        self.time_window_enabled_changed.emit(self.time_window_checkbox.isChecked())
+

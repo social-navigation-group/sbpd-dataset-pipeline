@@ -56,8 +56,8 @@ class TrajectoryManager(QObject):
     def get_active_trajectories(self, current_frame):
         active_trajectories = []
 
-        for traj_id, traj_start in self.traj_starts.items():
-            if traj_start <= current_frame < traj_start + len(self.trajectories[traj_id]):  
+        for traj_id, traj_start in self.traj_starts.items(): 
+            if traj_start <= current_frame < traj_start + len(self.trajectories[traj_id]): 
                 active_trajectories.append(traj_id)
 
         return active_trajectories

@@ -264,8 +264,11 @@ class ButtonController():
         else:
             self.trajectory_controls.delete_trajID_input(self.trajectory_controls.labeling_layout, self.mode)
             self.highlight_selected_button(self.prev_operation_btn)
-            self.trajectory_manager.updateFrame.emit(self.startFrame)
-                
+
+            if self.mode in [3, 4, 6]: # Break, Join, Disentangle
+                self.trajectory_manager.updateFrame.emit(self.startFrame)
+            self.trajectory_click_handler.refresh_frame_if_paused()
+
             self.mode = 0
             self.enable_all_buttons()
             self.lock_first_selection = False

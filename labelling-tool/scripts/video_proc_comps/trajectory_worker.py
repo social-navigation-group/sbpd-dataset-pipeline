@@ -7,18 +7,20 @@ from utils.logging_utils import log_info, log_error, log_debug
 class TrajectoryWorker(QThread):
     update_overlay = pyqtSignal(np.ndarray)
 
-    def __init__(self, trajectory_manager, color_generator, video_width, video_height, total_frames, video_fps = 30, cache_size = 30):
-        super().__init__()
+    def __init__(self, trajectory_manager, color_generator, video_width, video_height, total_frames, get_time_window_sec, video_fps = 30, cache_size = 30, parent = None):
+        super().__init__(parent)
         self.running = True
         self.frame_number = -1
         self.overlay_cache = {} 
         self.video_fps = video_fps
         self.cache_size = cache_size  # Buffer only 30 frames (~1 sec)
         self.video_width = video_width
+        self.time_window_enabled = True
         self.total_frames = total_frames
         self.video_height = video_height
         self.color_generator = color_generator
         self.trajectory_manager = trajectory_manager
+        self.time_window_sec = get_time_window_sec
 
     def run(self):
         """Runs the thread and updates overlay when frame changes."""
@@ -42,7 +44,10 @@ class TrajectoryWorker(QThread):
     def _generate_overlay(self, frame_number):
         """Generates trajectory overlay and labels for a frame."""
         overlay = np.zeros((self.video_height, self.video_width, 3), dtype = np.uint8)
+
+        # active_trajectories = list(self.trajectory_manager.get_active_trajectories(frame_number))
         active_trajectories = self.trajectory_manager.get_active_trajectories(frame_number)
+
         highlighted_trajs_info = self.trajectory_manager.get_selected_trajectory()
         highlighted_trajs = [info[0] for info in highlighted_trajs_info]
 
@@ -61,7 +66,15 @@ class TrajectoryWorker(QThread):
                 continue
 
             try:
-                active_traj = traj[: max(1, frame_offset + 1)]
+                if self.time_window_enabled:
+                    window_seconds = self.time_window_sec()
+                    window_size = int(window_seconds * self.video_fps)
+                    start_index = max(0, frame_offset - window_size + 1)
+                else:
+                    start_index = 0
+
+                # active_traj = traj[: max(1, frame_offset + 1)]
+                active_traj = traj[start_index: frame_offset + 1]
                 color = self.color_generator.get_color(traj_id)
 
                 if traj_id in highlighted_trajs: 
@@ -76,15 +89,15 @@ class TrajectoryWorker(QThread):
                         pt1 = self.scale_point(active_traj[j])
                         pt2 = self.scale_point(active_traj[j + 1])
                         cv2.line(overlay, pt1, pt2, highlighted_color.tolist(), 4)
-                        
+                            
                         last_point = self.scale_point(active_traj[-1])
-                        cv2.putText(overlay, str(traj_id + 1), last_point, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 146, 35), 1, lineType = cv2.LINE_AA)
+                        cv2.putText(overlay, str(traj_id + 1), last_point, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 146, 35), 1, lineType = cv2.LINE_AA)
             except Exception as e:
                 log_error(f"Error processing trajectory {traj_id} at frame {frame_number}: {e}")
 
         log_debug(f"Returning overlay for frame {frame_number}, np.sum: {np.sum(overlay)}")
         return overlay
-    
+        
     def _preload_future_frames(self, current_frame):
         """Preloads a rolling buffer of future frames"""
         selected_trajectory = self.trajectory_manager.get_selected_trajectory()
@@ -142,3 +155,6 @@ class TrajectoryWorker(QThread):
             self.wait()  
             self.quit()
         log_info("TrajectoryWorker stopped.")
+
+    def set_time_window_enabled(self, enabled: bool):
+        self.time_window_enabled = enabled

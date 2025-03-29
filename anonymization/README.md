@@ -14,13 +14,20 @@ Create a virtual environment or activate your own virtual environment
 python3 -m venv venv
 source venv/bin/activate
 ```
+
+Follow the official instructions to install ByteTrack: [ByteTrack GitHub Repository](https://github.com/ifzhang/ByteTrack)
+**Make sure these paths are valid in your setup:**
+```
+- Model checkpoint:
+../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar
+
+- Config:
+../ByteTrack/exps/example/mot/yolox_x_mix_det.py
+```
+
 Install the following packages
 ```
-pip install numpy toml pyyaml numpy opencv-python ultralytics
-```
-Download the `yolo11x.pt` checkpoint file from [ultralytics](https://github.com/ultralytics)
-```
-wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt
+pip install numpy toml pyyaml opencv-python 
 ```
 Create the following folders
 ```

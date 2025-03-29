@@ -86,6 +86,8 @@ class MainWindow(QMainWindow):
                 for btn in [self.video_controls.rewind_button, self.video_controls.play_pause_button, self.video_controls.stop_button, self.video_controls.forward_button, self.video_controls.video_dropdown, self.video_controls.frame_forward, self.video_controls.frame_back]: 
                     btn.setEnabled(True)
                 self.video_controls.frame_slider.setEnabled(True)
+                self.tab_dialog.trajectory_controls.time_window_slider.setEnabled(True)
+                self.tab_dialog.trajectory_controls.time_window_checkbox.setEnabled(True)
                 self.save_action.setEnabled(True)
                 
                 for btn_functions in self.tab_dialog.trajectory_controls.buttons:

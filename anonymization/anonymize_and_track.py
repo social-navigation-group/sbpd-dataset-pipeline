@@ -6,14 +6,16 @@ import yaml
 import copy
 import time
 import numpy as np
-from ultralytics import YOLO
+from byte_track_wrapper import ByteTrackWrapper
+# from ultralytics import YOLO
 
 from define_area import select_area
 
 def get_args():
     parser = argparse.ArgumentParser(description="Anonymize a video using YOLO tracking")
     # Paths
-    parser.add_argument("--model", default="./yolo11x.pt", type=str, help="Path to the YOLO model")
+    parser.add_argument("--model", default="../../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", type=str, help="Path to the YOLOX model")
+    parser.add_argument("--experiment_config", default="../../ByteTrack/exps/example/mot/yolox_x_mix_det.py", type=str, help="ByteTrack experiment config file")
     parser.add_argument("--video", default="./videos", type=str, help="Path to the folder that contains video files")
     parser.add_argument("--output", default="./videos_anonymized", type=str, help="Path to the folder that contains anonymized video files")
     parser.add_argument("--trajectory-output", default="./trajectories", type=str, help="Path to save the automated trajectories")
@@ -39,6 +41,7 @@ def get_args():
     # If the pedestrians feet cannot be seen, their trajectories will still be recorded at the bottom of the screen.
     # This parameter allows to ignore these trajectories.
     parser.add_argument("--boundary-width", default=10, type=int, help="Ignore trajectories within boundary width of the bottom of the frame")
+    parser.add_argument("--min-length", default=30, type=int, help="Minimum length of a trajectory to be recorded")
 
     # Trajectory options
     parser.add_argument("--traj-fps", default=10, type=int, help="Fps of the trajectories")
@@ -81,11 +84,12 @@ def get_args():
     if args.boundary_width < 0:
         print("ERROR: The boundary width must be non-negative.")
         exit(1)
+    if args.min_length < 0:
+        print("ERROR: The minimum trajectory length must be non-negative.")
+        exit(1)
     return args
 
 def main(args):
-    model = YOLO(args.model)
-
     for video_file in os.listdir(args.video):
         video_test_file = video_file.lower()
         if (not video_test_file.endswith(".mp4")) and \
@@ -134,6 +138,12 @@ def main(args):
         id_list = []
         start_time = time.time()
         print(f"Start processing video: {video_file}")
+
+        tracker = ByteTrackWrapper(
+            model_path = args.model,
+            exp_file = args.experiment_config
+        )
+        
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -142,7 +152,7 @@ def main(args):
             frame_id += 1
             print(f"\rProcessing frame {frame_id}/{num_frames}", end="")
 
-            results = model.track(frame, persist = True, iou = args.iou, show = False, tracker = args.tracker, verbose = False)
+            bbox_tlwh, track_ids = tracker.update(frame)
             save_frame = copy.deepcopy(frame)
 
             # load or create restrict areas
@@ -156,38 +166,48 @@ def main(args):
                     with open(area_path, 'w') as f:
                         yaml.dump(area, f)
                 area = np.array(area, np.int32)
+            
+            for box_index in range(len(bbox_tlwh)):
+                top_left_x, top_left_y, width, height = bbox_tlwh[box_index]
+                object_id = track_ids[box_index]
 
-            for box in results[0].boxes:
-                if box.cls[0] == 0:  # Only track humans (label 0)
-                    bbox = box.xyxy[0].cpu().numpy()
-                    x1, y1, x2, y2 = bbox
+                x1, y1, x2, y2 = int(top_left_x), int(top_left_y), int(top_left_x + width), int(top_left_y + height)
 
-                    # Anonymize bounding box
-                    if (not args.blur_all) and (not args.no_blur):
-                        new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
-                        x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
-                        if args.blur_black:
-                            save_frame[y1:new_y2, x1:x2, :] = 0
+                # Anonymize bounding box
+                if (not args.blur_all) and (not args.no_blur):
+                    new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
+                    x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
+                    if args.blur_black:
+                        save_frame[y1:new_y2, x1:x2, :] = 0
+                    else:
+                        save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
+
+                # Record tracking for trajectories
+                if (not args.no_track) and ((frame_id - 1) % interval == 0):
+                    # coordinate = [(float(x1) + float(x2)) / 2, float(y2)]
+                    # object_id = int(box.id[0]) if box.id is not None else -1
+                    center_x = top_left_x + width/ 2
+                    bottom_y = top_left_y + height 
+                    coordinate = [float(center_x), float(bottom_y)]
+                    human_name = f"human{object_id}"
+
+                    if (object_id != -1) and \
+                        ((not args.restrict_area) or (cv2.pointPolygonTest(area, (center_x, bottom_y), False) == True)) and \
+                        (bottom_y < frame_height - args.boundary_width):
+                        # ((not args.restrict_area) or (cv2.pointPolygonTest(area, (coordinate[0], coordinate[1]), False) == True)) and \
+                        # (coordinate[1] < frame_height - args.boundary_width):
+                        
+                        traj_frame_id = frame_id // interval
+                        if (object_id not in id_list):
+                            id_list.append(object_id)
+                            trajectory_dict[human_name] = {}
+                            trajectory_dict[human_name]["traj_start"] = traj_frame_id
+                            trajectory_dict[human_name]["trajectories"] = [coordinate]
+                            trajectory_dict[human_name]["frame_number"] = [traj_frame_id]
+                            trajectory_dict[human_name]["human_context"] = None
                         else:
-                            save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
-
-                    # Record tracking for trajectories
-                    if (not args.no_track) and ((frame_id - 1) % interval == 0):
-                        coordinate = [(float(x1) + float(x2)) / 2, float(y2)]
-                        object_id = int(box.id[0]) if box.id is not None else -1
-                        human_name = f"human{object_id}"
-
-                        if (object_id != -1) and \
-                            ((not args.restrict_area) or (cv2.pointPolygonTest(area, (coordinate[0], coordinate[1]), False) == True)) and \
-                            (coordinate[1] < frame_height - args.boundary_width):
-                            if (object_id not in id_list):
-                                id_list.append(object_id)
-                                trajectory_dict[human_name] = {}
-                                trajectory_dict[human_name]["traj_start"] = frame_id // interval
-                                trajectory_dict[human_name]["trajectories"] = [coordinate]
-                                trajectory_dict[human_name]["human_context"] = None
-                            else:
-                                trajectory_dict[human_name]["trajectories"].append(coordinate)
+                            trajectory_dict[human_name]["trajectories"].append(coordinate)
+                            trajectory_dict[human_name]["frame_number"].append(traj_frame_id)
             
             if (args.blur_all) and (not args.no_blur):
                 save_frame = cv2.GaussianBlur(save_frame, (args.shallow_size, args.shallow_size), 0)
@@ -199,8 +219,35 @@ def main(args):
             if (not args.no_blur):
                 output.write(save_frame)
 
-        # smooth trajectories
+        
         if not args.no_track:
+            # filter short trajectories
+            for human_name in list(trajectory_dict.keys()):
+                if len(trajectory_dict[human_name]["trajectories"]) < args.min_length:
+                    del trajectory_dict[human_name]
+
+            # use linear interpolation to fill in missing frames
+            for human_name in trajectory_dict:
+                trajectory = trajectory_dict[human_name]["trajectories"]
+                frame_number = trajectory_dict[human_name]["frame_number"]
+                new_trajectory = []
+                new_frame_number = []
+                for i in range(len(trajectory) - 1):
+                    new_trajectory.append(trajectory[i])
+                    new_frame_number.append(frame_number[i])
+                    if frame_number[i + 1] - frame_number[i] > 1:
+                        for j in range(frame_number[i] + 1, frame_number[i + 1]):
+                            ratio = (j - frame_number[i]) / (frame_number[i + 1] - frame_number[i])
+                            x = trajectory[i][0] + ratio * (trajectory[i + 1][0] - trajectory[i][0])
+                            y = trajectory[i][1] + ratio * (trajectory[i + 1][1] - trajectory[i][1])
+                            new_trajectory.append([x, y])
+                            new_frame_number.append(j)
+                new_trajectory.append(trajectory[-1])
+                new_frame_number.append(frame_number[-1])
+                trajectory_dict[human_name]["trajectories"] = new_trajectory
+                trajectory_dict[human_name]["frame_number"] = new_frame_number
+
+            # smooth trajectories
             smooth_len = args.smooth_len // 2
             for human_name in trajectory_dict:
                 trajectory = trajectory_dict[human_name]["trajectories"]

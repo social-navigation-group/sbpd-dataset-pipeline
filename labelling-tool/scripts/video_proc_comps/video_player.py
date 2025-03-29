@@ -104,6 +104,7 @@ class VideoPlayer(QWidget):
             self.video_width,  
             self.video_height,  
             self.total_frames,  
+            self.view.get_ui_class().get_time_window_seconds,
             self.video_fps,
             cache_size = 30 # Preload next 30 frames only
         )
