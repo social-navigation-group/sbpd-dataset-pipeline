@@ -150,7 +150,6 @@ def main(args):
         model_path = args.model,
         exp_file = args.experiment_config
     )
-    debugging_frame = 1000
     
     while cap.isOpened():
         ret, frame = cap.read()
@@ -158,11 +157,7 @@ def main(args):
             break
 
         frame_id += 1
-        print(f"\rProcessing frame {frame_id}/{num_frames}", end="")
-
-        if (frame_id == debugging_frame):
-            print("Debugging")
-            break
+        print(f"\rProcessing frame {frame_id}/{num_frames}", end = "")
 
         bbox_tlwh, track_ids = tracker.update(frame)
         save_frame = copy.deepcopy(frame)
