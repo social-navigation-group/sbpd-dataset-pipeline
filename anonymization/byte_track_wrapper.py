@@ -1,14 +1,12 @@
-import torch
 import os
-import os.path as osp
-import cv2
+import torch
 from yolox.exp import get_exp
-from yolox.utils import postprocess, fuse_model
-from yolox.tracker.byte_tracker import BYTETracker
+from yolox.utils import postprocess
 from yolox.data.data_augment import preproc
+from yolox.tracker.byte_tracker import BYTETracker
 
 class ByteTrackWrapper:
-    def __init__(self, model_path, exp_file, device="cuda", conf=0.5, nms=0.7, input_size=640, fp16=False):
+    def __init__(self, model_path, exp_file, device = "cuda", conf = 0.5, nms = 0.7, input_size = 640, fp16 = False):
         self.device = torch.device("cuda" if device == "cuda" else "cpu")
         exp_name = os.path.splitext(os.path.basename(exp_file))[0] 
         self.exp = get_exp(exp_file, exp_name)
@@ -18,13 +16,13 @@ class ByteTrackWrapper:
         self.fp16 = fp16
 
         self.model = self.exp.get_model().to(self.device)
-        ckpt = torch.load(model_path, map_location="cpu", weights_only=True)
+        ckpt = torch.load(model_path, map_location = "cpu", weights_only = True)
         self.model.load_state_dict(ckpt["model"])
         self.model.eval()
         if fp16:
             self.model = self.model.half()
         self.tracker = BYTETracker(
-            args=type("Args", (), {
+            args = type("Args", (), {
                 "track_thresh": 0.5,
                 "track_buffer": 30,
                 "match_thresh": 0.8,
@@ -32,12 +30,12 @@ class ByteTrackWrapper:
                 "min_box_area": 10,
                 "mot20": False
             }),
-            frame_rate=30
+            frame_rate = 30
         )
 
     def update(self, frame):
         orig_h, orig_w = frame.shape[:2]
-        img, ratio = preproc(frame, self.exp.test_size, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        img, _ = preproc(frame, self.exp.test_size, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         img = torch.from_numpy(img).unsqueeze(0).float().to(self.device)
         if self.fp16:
             img = img.half()
