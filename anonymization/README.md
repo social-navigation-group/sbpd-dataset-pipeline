@@ -35,13 +35,20 @@ mkdir videos areas trajectories videos_anonymized
 ```
 
 ## Detailed Explanations
-
-`anonymize_and_track.py` runs anonymization and tracking of pedestrians at the same time, but either anonymization or tracking can be turned off. This code has many options to customize how you want to achieve anonymization or tracking.
+The pipeline includes two main scripts:
+ - `anonymize_and_track.py` processes a single video to perform pedestrian anonymization and tracking at the same time (but either anonymization or tracking can be turned off). It provides various options to customize how these tasks are executed.
+ - `run_all_videos.py` is a wrapper script that automatically applies `anonymize_and_track.py` to all videos in a specified folder (default: `./videos`). Each video is processed in a separate subprocess to ensure that tracking IDs are reset between videos and do not carry over, which could lead to ID conflicts or tracking inconsistencies across videos.
+   
+> To process all videos in a folder using full-frame anonymization and restricted area tracking:
+```
+python3 run_all_videos.py --video-folder ./videos2 --blur-all --restrict-area
+```
 
 By default, the code will: 
-1. Read all the videos saved in the "videos" folder.
-2. Put the anonymized videos in the "videos_anonymized" folder
-3. Put the tracked trajectories and the anonymized videos for the trajectories in the "trajectories" folder. These videos have the same fps as the trajectories and display the tracking area if an area is defined for tracking the trajectories. The data in this folder can be directly copied to the labeling tool for processing.
+1. It reads video files (e.g., `.mp4`, `.avi`, `.mov`) from a folder.
+2. Outputs anonymized versions to the folder specified by `--output` (default: `./videos_anonymized`).
+3. Outputs trajectories and annotated trajectory videos to the folder specified by `--trajectory-output` (default: `./trajectories`). These videos have the same fps as the trajectories and display the tracking area if an area is defined for tracking the trajectories. The data in this folder can be directly copied to the labeling tool for processing.
+4. If area-based tracking is enabled (`--restrict-area`), area definitions are read from or saved to the folder specified by `--area-path` (default: `./areas`).
 
 Notable Options:
 - `no-blur`: Disable anonymization
