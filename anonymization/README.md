@@ -6,7 +6,7 @@ The codes in this folder are for anonymizing videos (Both FPV and BEV videos) an
 To use these codes:
 1. Place all the raw videos in the "videos" folder.
 2. If you would like to define an area within the videos for producing trajectories individually, run `define_area.py`
-3. Run `anonymize_and_track.py`.
+3. Run `run_all_videos.py`.
 
 ## Dependencies
 Create a virtual environment or activate your own virtual environment
