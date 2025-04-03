@@ -179,6 +179,8 @@ This button swaps two overlapping trajectories after a certain frame to correct 
 - Each click reverts the most recent unsaved modification. 
 - Once saved, modifications can no longer be undone using this button.
 
+---
+
 ### 💾 Autosave Feature
 After each successful transformation—such as **Relabel**, **Break**, **Join**, **Delete**, etc. — the current state of the trajectories is **automatically saved** to an `autosave.toml` file.
 
