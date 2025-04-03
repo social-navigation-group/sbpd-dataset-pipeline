@@ -179,6 +179,11 @@ This button swaps two overlapping trajectories after a certain frame to correct 
 - Each click reverts the most recent unsaved modification. 
 - Once saved, modifications can no longer be undone using this button.
 
+##### Overview
+This button reverts the last modification to the trajectory data. The undo starts with the most recent modification to the first one made during the session. After saving the progress, the undo function **WILL NOT REVERT THE MODIFICATION**. By default, the current implementation limits the undos (by default, 10 times only). The user can increase the limit value (if needed).
+
+[Watch example of the undo modifier](videos/undo.mp4)
+
 ---
 
 ### 💾 Autosave Feature
@@ -190,6 +195,8 @@ This autosave happens when:
 
 The autosaved file is located in: `resources/config/original_data/autosave.toml`
 > 🛑 **Note:** Autosave is session-persistent, but it does not replace manual saving. To export and preserve your final labels, use the **Save** option in the menu bar.
+
+---
 
 ### 🎮 Media Controls & Keyboard Shortcuts
 
@@ -203,12 +210,6 @@ The tool supports convenient keyboard shortcuts for video navigation:
 | `→` (Right) | Move one frame forward            |
 | `Enter`     | Confirm trajectory selection / Apply changes |
 | `Esc`       | Cancel current operation          |
-
-##### Overview
-This button reverts the last modification to the trajectory data. The undo starts with the most recent modification to the first one made during the session. After saving the progress, the undo function **WILL NOT REVERT THE MODIFICATION**. By default, the current implementation limits the undos (by default, 10 times only). The user can increase the limit value (if needed).
-
-[Watch example of the undo modifier](videos/undo.mp4)
-
 
 ## Error Logging
 The application allows users to manually log errors encountered during labeling. Users can enter error descriptions through the UI, which will be recorded in the log file for review. This helps in debugging labeling inconsistencies or software-related issues. ubmitting any errors seen in the video that cannot be fixed with the above transformations. The user will describe the error in the textbox and then press the Submit button, which will record their message along with the current frame and the currently active trajectories of that frame
