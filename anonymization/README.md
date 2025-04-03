@@ -16,7 +16,8 @@ source venv/bin/activate
 ```
 
 Follow the official instructions to install ByteTrack: [ByteTrack GitHub Repository](https://github.com/ifzhang/ByteTrack)
-**Make sure these paths are valid in your setup:**
+
+> **Make sure these paths are valid in your setup:**
 ```
 - Model checkpoint:
 ../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar
