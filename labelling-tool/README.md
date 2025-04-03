@@ -179,6 +179,29 @@ This button swaps two overlapping trajectories after a certain frame to correct 
 - Each click reverts the most recent unsaved modification. 
 - Once saved, modifications can no longer be undone using this button.
 
+### 💾 Autosave Feature
+After each successful transformation—such as **Relabel**, **Break**, **Join**, **Delete**, etc. — the current state of the trajectories is **automatically saved** to an `autosave.toml` file.
+
+This autosave happens when:
+- You click "Apply" for any transformation
+- The trajectory selection is cleared
+
+The autosaved file is located in: `resources/config/original_data/autosave.toml`
+> 🛑 **Note:** Autosave is session-persistent, but it does not replace manual saving. To export and preserve your final labels, use the **Save** option in the menu bar.
+
+### 🎮 Media Controls & Keyboard Shortcuts
+
+The tool supports convenient keyboard shortcuts for video navigation:
+
+| Key         | Action                            |
+|-------------|-----------------------------------|
+| `Space`     | Play / Pause                      |
+| `S`         | Stop and reset to first frame     |
+| `←` (Left)  | Move one frame backward           |
+| `→` (Right) | Move one frame forward            |
+| `Enter`     | Confirm trajectory selection / Apply changes |
+| `Esc`       | Cancel current operation          |
+
 ##### Overview
 This button reverts the last modification to the trajectory data. The undo starts with the most recent modification to the first one made during the session. After saving the progress, the undo function **WILL NOT REVERT THE MODIFICATION**. By default, the current implementation limits the undos (by default, 10 times only). The user can increase the limit value (if needed).
 
