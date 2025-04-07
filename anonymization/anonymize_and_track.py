@@ -126,18 +126,37 @@ def main(args):
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(round(cap.get(cv2.CAP_PROP_FPS)))
     num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # Downscale video
+    max_width = 1920
+    max_height = 1080
+    scale_w = frame_width / max_width if frame_width > max_width else 1.0
+    scale_h = frame_height / max_height if frame_height > max_height else 1.0
+    downscale_factor = max(scale_w, scale_h)
+    downscale = downscale_factor > 1.0
+
+    if downscale:
+        new_width = int(frame_width / downscale_factor)
+        new_height = int(frame_height / downscale_factor)
+        print(f"Downscaling video from {frame_width}x{frame_height} to {new_width}x{new_height}")
+    else:
+        new_width = frame_width
+        new_height = frame_height
+
+    scaled_boundary_width = int(args.boundary_width / downscale_factor) if downscale else args.boundary_width
+    
     if (fps % args.traj_fps) != 0:
         print(f"ERROR: The video {video_path} has a frame rate that is not a multiple of the trajectory frame rate.")
         print(f"Current frame rate: {fps}, trajectory frame rate: {args.traj_fps}")
         return
-        # continue
-    interval = max(1, int(fps / args.traj_fps))
 
+    interval = max(1, int(fps / args.traj_fps))
+    
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     if not args.no_blur:
-        output = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
+        output = cv2.VideoWriter(output_path, fourcc, fps, (new_width, new_height))
     if not args.no_track:
-        trajectory_video = cv2.VideoWriter(trajectory_video_path, fourcc, args.traj_fps, (frame_width, frame_height))
+        trajectory_video = cv2.VideoWriter(trajectory_video_path, fourcc, args.traj_fps, (new_width, new_height))
 
     # Main loop
     frame_id = 0
@@ -159,6 +178,9 @@ def main(args):
         frame_id += 1
         print(f"\rProcessing frame {frame_id}/{num_frames}", end = "")
 
+        if downscale:
+            frame = cv2.resize(frame, (new_width, new_height), interpolation = cv2.INTER_AREA)
+
         bbox_tlwh, track_ids = tracker.update(frame)
         save_frame = copy.deepcopy(frame)
 
@@ -166,13 +188,17 @@ def main(args):
         if (frame_id == 1) and args.restrict_area:
             if os.path.exists(area_path):
                 with open(area_path, 'r') as f:
-                    area = yaml.load(f, Loader=yaml.FullLoader)
+                    area = yaml.load(f, Loader = yaml.FullLoader)
             else:
                 # Use matplotlib to select points until right click TODO
                 area = select_area(frame, args.scale)
                 with open(area_path, 'w') as f:
                     yaml.dump(area, f)
-            area = np.array(area, np.int32)
+
+            area = np.array(area, np.float32)
+            if downscale:
+                area /= downscale_factor
+            area = area.astype(np.int32)
         
         for box_index in range(len(bbox_tlwh)):
             top_left_x, top_left_y, width, height = bbox_tlwh[box_index]
@@ -198,7 +224,7 @@ def main(args):
 
                 if (object_id != -1) and \
                     ((not args.restrict_area) or (cv2.pointPolygonTest(area, (center_x, bottom_y), False) == True)) and \
-                    (bottom_y < frame_height - args.boundary_width):
+                    (bottom_y < new_height - scaled_boundary_width):
                     
                     traj_frame_id = frame_id // interval
                     if (object_id not in id_list):
