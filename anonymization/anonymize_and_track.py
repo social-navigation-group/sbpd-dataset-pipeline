@@ -205,19 +205,23 @@ def main(args):
             object_id = track_ids[box_index]
 
             x1, y1, x2, y2 = int(top_left_x), int(top_left_y), int(top_left_x + width), int(top_left_y + height)
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+            x2 = min(new_width - 1, x2)
+            y2 = min(new_height - 1, y2)
+            if not ((x1 < x2) and (y1 < y2)):
+                continue
 
             # Anonymize bounding box
             if (not args.blur_all) and (not args.no_blur):
                 new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
-                x1 = max(0, x1)
-                y1 = max(0, y1)
-                x2 = min(new_width - 1, x2)
                 new_y2 = min(new_height - 1, new_y2)
                 x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
-                if args.blur_black:
-                    save_frame[y1:new_y2, x1:x2, :] = 0
-                else:
-                    save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
+                if (y1 < new_y2):
+                    if args.blur_black:
+                        save_frame[y1:new_y2, x1:x2, :] = 0
+                    else:
+                        save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
 
             # Record tracking for trajectories
             if (not args.no_track) and ((frame_id - 1) % interval == 0):
