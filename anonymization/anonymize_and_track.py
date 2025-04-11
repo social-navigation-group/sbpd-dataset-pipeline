@@ -169,7 +169,7 @@ def main(args):
         model_path = args.model,
         exp_file = args.experiment_config
     )
-    
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -209,6 +209,10 @@ def main(args):
             # Anonymize bounding box
             if (not args.blur_all) and (not args.no_blur):
                 new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
+                x1 = max(0, x1)
+                y1 = max(0, y1)
+                x2 = min(new_width - 1, x2)
+                new_y2 = min(new_height - 1, new_y2)
                 x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
                 if args.blur_black:
                     save_frame[y1:new_y2, x1:x2, :] = 0

@@ -8,6 +8,8 @@ def main():
     parser.add_argument("--anonymize-script", default = "./anonymize_and_track.py", type = str, help = "Path to anonymize script.")
 
     # Forwarded arguments
+    parser.add_argument("--no-blur", action = "store_true")
+    parser.add_argument("--no-track", action = "store_true")
     parser.add_argument("--blur-all", action = "store_true")
     parser.add_argument("--restrict-area", action = "store_true")
 
@@ -27,8 +29,12 @@ def main():
         # Pass along arguments explicitly
         if args.blur_all:
             cmd.append("--blur-all")
+        if args.no_blur:
+            cmd.append("--no-blur")
         if args.restrict_area:
             cmd.append("--restrict-area")
+        if args.no_track:
+            cmd.append("--no-track")
 
         subprocess.run(cmd, check=True)
         print(f"Finished video: {video}")

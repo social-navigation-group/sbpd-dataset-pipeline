@@ -6,7 +6,7 @@ The codes in this folder are for anonymizing videos (Both FPV and BEV videos) an
 To use these codes:
 1. Place all the raw videos in the "videos" folder.
 2. If you would like to define an area within the videos for producing trajectories individually, run `define_area.py`
-3. Run `run_all_videos.py`.
+3. Run `run_videos.py`.
 
 ## Dependencies
 Create a virtual environment or activate your own virtual environment
@@ -42,7 +42,7 @@ The pipeline includes two main scripts:
    
 > To process all videos in a folder using full-frame anonymization and restricted area tracking:
 ```
-python3 run_all_videos.py --video-folder ./videos2 --blur-all --restrict-area
+python3 run_videos.py --video-folder ./videos2 --blur-all --restrict-area
 ```
 
 By default, the code will: 
