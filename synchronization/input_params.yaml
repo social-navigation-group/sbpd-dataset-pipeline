@@ -1,0 +1,16 @@
+input_params:
+  rosbag_uri : {path_here}
+  rosbag_storage_id : sqlite3                                                                           # {sqlite3, mcap}
+  rosbag_compression : False                                                                            # bool indicating whether rosbag is compressed
+  robot_camera_topic : /camera/camera/color/image_raw/compressed                                        # robot camera topic
+  robot_camera_compression : True                                                                       # bool indicating whether robot camera image is compressed
+  robot_camera_info_topic : /camera/camera/color/camera_info                                            # robot camera_info topic
+  video_file_uri : {path_here}                    
+  sync_command_topic : /sync_command                                                                    # sync command topic
+  sync_command_message_type : String # supported: {String, Float64, Int64}                              # sync command data type
+  bev_skip_time_seconds : 200                                                                           # time in seconds to skip searching for time QR code in BEV video
+  bev_camera_intrinsics :                                                                               # BEV camera intrinsic matrix parameters
+    fx : {values_here}
+    fy : {values_here}
+    cx : {values_here}
+    cy : {values_here}
