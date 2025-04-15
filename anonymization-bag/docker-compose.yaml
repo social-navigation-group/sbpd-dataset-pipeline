@@ -1,0 +1,11 @@
+version: "3.3"
+services:
+  bag_processor:
+    build: .
+    image: bag_processor
+    container_name: bag_processor
+    volumes:
+      - /path/to/your/data:/bag_ws/data  # Mounts your host data folder into the container
+      - ./scripts:/bag_ws/scripts
+    tty: true           # Keeps the container running interactively
+
