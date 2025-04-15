@@ -53,8 +53,10 @@ def filter_bag(input_bag_path, output_bag_path, topics_to_save):
                     print(f"Registered connection for topic '{connection.topic}' with type '{connection.msgtype}'")
 
                 # Process if the message is a CompressedImage message.
-                # (Adjust the check if your topic uses uncompressed sensor_msgs/Image).
-                if 'Image' in connection.msgtype:
+                ###################################################################################################
+                # !!!(Adjust the check if your depth image topic uses other names that does not contain 'depth')!!!
+                ###################################################################################################
+                if ('Image' in connection.msgtype) and (not 'depth' in connection.topic):
                     try:
                         # Deserialize the message to a CompressedImage.
                         image_msg = reader.deserialize(rawdata, connection.msgtype)
