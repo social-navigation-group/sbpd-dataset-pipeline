@@ -1,5 +1,8 @@
 # Human Data Labeling Tool
 
+## Overview
+Please refer to `anonymization` ([link](https://github.com/social-navigation-group/sbpd-dataset-pipeline/tree/main/anonymization)) to preprocess the videos first before using this tool.
+
 The **Human Data Labeling Tool** is a PyQt6-based application designed for annotating human movement trajectories in video files. It provides an interactive UI for loading videos, importing trajectory files, labeling human data, and managing trajectory modifications.
 This project is a Python conversion of an open-source [MATLAB-based tool](https://github.com/CMU-TBD/tbd_label_correction_UI) and has been tested on a Linux system.
 
@@ -10,10 +13,10 @@ This project is a Python conversion of an open-source [MATLAB-based tool](https:
 
 ## Installation
 ### Prerequisites
-Ensure you have **Python updated**. It is recommended to use a virtual environment:
+Ensure you have **Python updated**. It is recommended to use a virtual environment or use the same virtual environment created for anonymization:
 
 ```sh
-# Create and activate a virtual environment
+# Create and activate a virtual environment if not set up yet
 python -m venv venv
 source venv/bin/activate  # On Linux/macOS
 
@@ -36,20 +39,21 @@ mkdir resources/config/original_data resources/videos
 ## File Structure
 ```
 project_root/
-│── src/
+│── scripts/
 │   ├── main.py  # Entry point
 │   ├── logs/    # Log files for debugging
 │   ├── ui/      # UI components (MainWindow, VideoControls, TabDialog)
 │   ├── video_proc_comps/  # Video player and trajectory handlers
 │   ├── utils/   # Logging, resource management, and file utilities
-│── resources/   # Stylesheets, icons, and default config files
+│── resources/   # Stylesheets, icons, and default config files]
+│── videos/      # Example tutorial videos
 │── README.md    # Project documentation
 ```
 
 ### Usage
 Run the main application script:
 ```sh
-python3 path/to/main.py  # Use python or python3 
+python3 scripts/main.py  # Use python or python3
 ```
 > To display videos in the dropdown menu of the UI, add them to the `resources/config/videos` folder. The trajectories can be placed in any directory.
 > 🔵 In current version the tab **"Human"** in the UI is under construction.
@@ -213,6 +217,10 @@ The tool supports convenient keyboard shortcuts for video navigation:
 
 ## Error Logging
 The application allows users to manually log errors encountered during labeling. Users can enter error descriptions through the UI, which will be recorded in the log file for review. This helps in debugging labeling inconsistencies or software-related issues. ubmitting any errors seen in the video that cannot be fixed with the above transformations. The user will describe the error in the textbox and then press the Submit button, which will record their message along with the current frame and the currently active trajectories of that frame
+
+## Tips
+- Stationary pedestrians are not as important as walking pedestrians, so they can be ignored if there is a time constraint.
+- In very crowded areas that are far away from the camera, if the tracking quality is bad, it is usually faster to delete all the trajectories and relabel them from scratch.
 
 ## Playground
 Users can find an example to test the trajectory modifiers in the `resources/config` directory. In the UI's dropdown menu, select `example_small_data.avi` and then import `example_small_data.toml`.
