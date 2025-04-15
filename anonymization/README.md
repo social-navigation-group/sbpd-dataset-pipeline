@@ -90,6 +90,8 @@ python3 run_videos.py --video-folder ./videos --blur-all --no-track
 - In `define_area.py`, scale can be helpful if the video resolution is larger than the screen display.
 - For `restrict-area`, area selection should be based on the pedestrians' footing area.
 
-## Connect to labelling-tool
+## Connect to labeling-tool
+
+labeling tool [link](https://github.com/social-navigation-group/sbpd-dataset-pipeline/tree/main/labelling-tool).
 
 Go to the "trajectories" folder. Copy the toml files to `<path to labeling-tool>/resources/config/original_data` and the video files to `<path to labeling-tool>/resources/videos`. Then, the labeling-tool is ready to be used. Please refer to labeling-tool's readme for further instructions.
