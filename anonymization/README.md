@@ -9,7 +9,7 @@ To use these codes by default:
 3. Run `run_videos.py`.
 
 ## Dependencies
-Create a virtual environment or activate your own virtual environment
+Create a virtual environment or activate your existing virtual environment
 ```
 python3 -m venv venv
 source venv/bin/activate
