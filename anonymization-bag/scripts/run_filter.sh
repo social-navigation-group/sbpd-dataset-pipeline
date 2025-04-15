@@ -74,6 +74,7 @@ if $all_topics; then
 else
     # Otherwise, use the default topics.
     TOPICS=( "${DEFAULT_TOPICS[@]}" )
+fi
 
 echo "Using base path: $BASE_PATH"
 echo "Use blur: $use_blur"
