@@ -1,7 +1,7 @@
 # Anonymization and Tracking
 
 ## Overview
-The codes in this folder are for anonymizing videos (Both FPV and BEV videos in video formats such as mp4, avi) and optionally producing automatically tracked trajectories for pedestrians. The files output from the trajectory tracking can be directly moved to the labeling tool for manual annotation checks.
+The codes in this folder are for anonymizing videos and optionally producing automatically tracked trajectories for pedestrians. Both FPV and BEV videos in video formats such as mp4, avi can work. For FPV videos (or BEV videos) stored in ROS2 bags, please refer [here](https://github.com/social-navigation-group/sbpd-dataset-pipeline/tree/main/anonymization-bag) for anonymization. The files output from the trajectory tracking can be directly moved to the labeling tool for manual annotation checks.
 
 To use these codes by default:
 1. Place all the raw videos in the "videos" folder.
