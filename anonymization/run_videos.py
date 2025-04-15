@@ -11,6 +11,7 @@ def main():
     parser.add_argument("--no-blur", action = "store_true")
     parser.add_argument("--no-track", action = "store_true")
     parser.add_argument("--blur-all", action = "store_true")
+    parser.add_argument("--blur-black", action = "store_true")
     parser.add_argument("--restrict-area", action = "store_true")
 
     args = parser.parse_args()
@@ -31,6 +32,8 @@ def main():
             cmd.append("--blur-all")
         if args.no_blur:
             cmd.append("--no-blur")
+        if args.blur_black:
+            cmd.append("--blur-black")
         if args.restrict_area:
             cmd.append("--restrict-area")
         if args.no_track:

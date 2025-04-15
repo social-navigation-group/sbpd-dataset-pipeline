@@ -14,7 +14,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Anonymize a video using ByteTrack")
     # Paths
     parser.add_argument("--model", default = "../../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", type = str, help = "Path to the YOLOX model")
-    parser.add_argument("--experiment_config", default = "../../ByteTrack/exps/example/mot/yolox_x_mix_det.py", type = str, help = "ByteTrack experiment config file")
+    parser.add_argument("--experiment-config", default = "../../ByteTrack/exps/example/mot/yolox_x_mix_det.py", type = str, help = "ByteTrack experiment config file")
     parser.add_argument("--video", required = True, type = str, help = "Path to the folder that contains video files") # default="./videos"
     parser.add_argument("--output", default="./videos_anonymized", type = str, help = "Path to the folder that contains anonymized video files")
     parser.add_argument("--trajectory-output", default = "./trajectories", type = str, help = "Path to save the automated trajectories")
