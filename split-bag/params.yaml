@@ -1,0 +1,6 @@
+rosbag_split_params:
+  base_path:  {path_here}               # path to directory containing bag files
+  storage_id: {value_here}              # {sqlite3, mcap}
+  compression: {value_here}             # whether input rosbags are compressed
+  sync_command_topic: {topic_name}      # sync command topic
+  sync_command_data_type: {type}        # currently supported {String, Int64}, other types will require a small refactoring in the script.
