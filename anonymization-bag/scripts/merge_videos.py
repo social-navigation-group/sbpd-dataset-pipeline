@@ -17,7 +17,6 @@ from byte_track_wrapper import ByteTrackWrapper
 from pathlib import Path
 from rosbags.rosbag2 import Writer
 from rosbags.highlevel import AnyReader
-from cv_bridge import CvBridge
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 # from builtin_interfaces.msg import Time
 from rosbags.typesys.stores.ros2_humble import (
@@ -212,7 +211,6 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
     writer.open()
     os.makedirs(merged_bag_path, exist_ok=True)
     added_connections = {}  # topic: connection handle
-    bridge = CvBridge()
 
     OCCUPANCY_GRID_UPDATE_MSG = """
     std_msgs/Header header
