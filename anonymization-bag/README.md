@@ -32,6 +32,11 @@ Install dependencies
 pip3 install -r requirements.txt
 ```
 
+Install pytorch (You need to install [CUDA](https://developer.nvidia.com/cuda-downloads) first, and install the correct [PyTorch](https://pytorch.org/get-started/previous-versions/) version that matches your CUDA)
+```
+pip3 install torch torchvision torchaudio
+```
+
 Install the slightly modified [Detectron2](https://github.com/allanwangliqian/detectron2.git)
 ```
 git clone https://github.com/allanwangliqian/detectron2.git
