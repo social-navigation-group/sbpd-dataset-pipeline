@@ -1,8 +1,5 @@
 opencv-python
 numpy==1.24.4
 decord
-torch
-torchvision
-torchaudio
 rosbags
 rosbags-image
