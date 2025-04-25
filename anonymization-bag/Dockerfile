@@ -36,7 +36,7 @@ WORKDIR /bag_ws
 
 # Upgrade pip and install Python dependencies
 RUN pip3 install --upgrade pip && pip3 install --ignore-installed -r /tmp/requirements.txt
-RUN pip install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+RUN pip3 install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
 
 # Install Detectron2
 RUN git clone https://github.com/allanwangliqian/detectron2.git
