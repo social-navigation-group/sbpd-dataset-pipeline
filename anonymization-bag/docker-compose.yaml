@@ -8,4 +8,3 @@ services:
       - /path/to/your/data:/bag_ws/data  # Mounts your host data folder into the container
       - ./scripts:/bag_ws/scripts
     tty: true           # Keeps the container running interactively
-

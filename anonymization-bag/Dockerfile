@@ -35,8 +35,9 @@ RUN mkdir -p /bag_ws
 WORKDIR /bag_ws
 
 # Upgrade pip and install Python dependencies
-RUN pip3 install --upgrade pip && pip3 install --ignore-installed -r /tmp/requirements.txt
+RUN pip3 install --upgrade pip
 RUN pip3 install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+RUN pip3 install -r /tmp/requirements.txt
 
 # Install Detectron2
 RUN git clone https://github.com/allanwangliqian/detectron2.git
@@ -55,9 +56,6 @@ RUN pip3 install cython_bbox
 RUN mkdir -p /bag_ws/ByteTrack/pretrained
 RUN pip3 install gdown
 RUN gdown https://drive.google.com/uc?id=1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5 -O /bag_ws/ByteTrack/pretrained/bytetrack_x_mot17.pth.tar
-
-# Dependency fix
-RUN pip3 install numpy==1.26.4
 
 WORKDIR /bag_ws
 

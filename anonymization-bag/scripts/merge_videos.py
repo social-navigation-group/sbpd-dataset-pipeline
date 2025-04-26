@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import argparse
 import glob
 import os
 import copy
@@ -8,7 +7,7 @@ import shutil
 import cv2
 import tqdm
 import yaml
-import pickle as pkl
+
 from detectron2.config import get_cfg
 from predictor import VisualizationDemo as Detectron2Demo
 
@@ -17,8 +16,7 @@ from byte_track_wrapper import ByteTrackWrapper
 from pathlib import Path
 from rosbags.rosbag2 import Writer
 from rosbags.highlevel import AnyReader
-from rosbags.typesys import Stores, get_typestore, get_types_from_msg, get_types_from_idl
-from ament_index_python.packages import get_package_prefix
+from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 # from builtin_interfaces.msg import Time
 from rosbags.typesys.stores.ros2_humble import (
     builtin_interfaces__msg__Time as Time,
@@ -26,84 +24,7 @@ from rosbags.typesys.stores.ros2_humble import (
     std_msgs__msg__Header as Header,
 )
 
-
-def get_parser():
-    parser = argparse.ArgumentParser(description="Detectron2 demo for builtin configs")
-
-    parser.add_argument(
-        "--base-path",
-        help="Base path to the bag files and video files",
-    )
-
-    # Detectron2 arguments
-    parser.add_argument(
-        "--use-mask", 
-        action = "store_true", 
-        help = "Instance segmentation on the video (Higher priority than blur)"
-    )
-    parser.add_argument(
-        "--confidence-threshold",
-        type=float,
-        default=0.5,
-        help="Minimum score for instance predictions to be shown",
-    )
-    parser.add_argument(
-        "--detectron-config",
-        default="/bag_ws/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
-        metavar="FILE",
-        help="path to config file",
-    )
-    parser.add_argument(
-        "--opts",
-        help="Modify config options using the command-line 'KEY VALUE' pairs",
-        default=["MODEL.WEIGHTS", "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"],
-        nargs=argparse.REMAINDER,
-    )
-
-    # ByteTrack arguments
-    parser.add_argument(
-        "--use-blur", 
-        action = "store_true", 
-        help = "Anonymize the video (Not performed if also instance segmentation)"
-    )
-    parser.add_argument(
-        "--bytetrack-model", 
-        default = "../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", 
-        type = str, 
-        help = "Path to the YOLOX model"
-    )
-    parser.add_argument(
-        "--bytetrack_config", 
-        default = "../ByteTrack/exps/example/mot/yolox_x_mix_det.py", 
-        type = str, 
-        help = "ByteTrack experiment config file"
-    )
-    parser.add_argument(
-        "--blur-size", 
-        default = 41, 
-        type = int, 
-        help = "Size of the blur kernel",
-    )
-    parser.add_argument(
-        "--blur-pct", 
-        default = 0.25, 
-        type = float, 
-        help = "Percentage of the bounding box to blur",
-    )
-    parser.add_argument(
-        "--blur-min", 
-        default = 25, 
-        type = int, 
-        help = "Minimum pixels of the bounding box to blur",
-    )
-
-    args = parser.parse_args()
-    if args.base_path is None:
-        raise ValueError("Base path is required.")
-    if args.use_blur and args.use_mask:
-        print("Warning: Both --use-blur and --use-mask are set. --use-mask will take priority.")
-        args.use_blur = False
-    return args
+from arguments import get_args
 
 def setup_cfg(args):
     # For detectron2 masking
@@ -112,8 +33,8 @@ def setup_cfg(args):
     # To use demo for Panoptic-DeepLab, please uncomment the following two lines.
     # from detectron2.projects.panoptic_deeplab import add_panoptic_deeplab_config  # noqa
     # add_panoptic_deeplab_config(cfg)
-    cfg.merge_from_file(args.detectron_config)
-    cfg.merge_from_list(args.opts)
+    cfg.merge_from_file(args.segmentation_config)
+    cfg.merge_from_list(["MODEL.WEIGHTS", args.segmentation_weights])
     # Set score_threshold for builtin models
     cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
@@ -150,8 +71,7 @@ def process_video(input_video_path, output_video_path, args):
     else:
         if args.use_blur:
             tracker = ByteTrackWrapper(args.bytetrack_model, args.bytetrack_config)
-            out_tracks_file = output_video_path.replace("_processed.avi", "_tracks.pkl")
-            track_info = {}    
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -175,14 +95,12 @@ def process_video(input_video_path, output_video_path, args):
                         continue
                     #print(f"Blurring bounding box: {x1}, {y1}, {x2}, {new_y2}")
                     save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
-                    track_info[frame_idx] = {'bbox': bbox_tlwh, 'track_ids': track_ids}
+
             frame_idx += 1
             print(f"Processed frame {frame_idx}/{num_frames}", end='\r', flush=True)
             out.write(save_frame)
     cap.release()
     out.release()
-    with open(out_tracks_file, 'wb') as f:
-        pkl.dump(track_info, f)
     return
 
 def process_videos_in_directory(directory, args):
@@ -202,7 +120,7 @@ def process_videos_in_directory(directory, args):
 
 def merge_processed_videos(filtered_dir, merged_bag_path):
     """
-    In the given _filtered directory, find all processed videos (with _processed.avi suffix), and tracking file,
+    In the given _filtered directory, find all processed videos (with _processed.avi suffix),
     then for each video read its associated timestamp text file (.txt) and meta file (.yaml).
     Using this information, open the processed video with OpenCV, and write its frames as ROS
     image messages into a new bag file (using rosbags) with the appropriate timestamp and connection info.
@@ -244,19 +162,6 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
 
     # Find all processed video files in the directory.
     processed_videos = glob.glob(os.path.join(filtered_dir, "*_processed.avi"))
-    # Find the tracking file if it exists.
-    tracking_files = glob.glob(os.path.join(filtered_dir, "*_tracks.pkl"))
-    if tracking_files:
-        #register vision_msgs types
-        add_types = {}
-        for idl in glob.glob(os.path.join(get_package_prefix('rclpy'),"share","vision_msgs/msg/*.idl")):
-            add_types.update(get_types_from_idl(Path(idl).read_text()))
-        typestore.register(add_types)
-        Detection2DArray = typestore.types['vision_msgs/msg/Detection2DArray']
-        Detection2D = typestore.types['vision_msgs/msg/Detection2D']
-        BoundingBox2D = typestore.types['vision_msgs/msg/BoundingBox2D']
-        Point2D = typestore.types['vision_msgs/msg/Point2D']
-        Pose2D = typestore.types['vision_msgs/msg/Pose2D']
     for video_path in processed_videos:
         # Assume the basename is something like <safe_topic_name>_processed.avi;
         # remove the _processed part.
@@ -313,81 +218,6 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
             writer.write(added_connections[topic], timestamp, data_bytes)
             frame_idx += 1
         cap.release()
-    if tracking_files:
-        for tracking_file in tracking_files:
-            # Assume the basename is something like <safe_topic_name>_processed.avi;
-            # remove the _processed part.
-            base_name = Path(tracking_file).stem  # e.g. "topic1_processed"
-            safe_topic_name = base_name.replace("_tracks", "")
-            txt_file = os.path.join(filtered_dir, safe_topic_name + ".txt")
-            meta_file = os.path.join(filtered_dir, safe_topic_name + ".yaml")
-            
-            # Load meta file containing topic and message type information.
-            with open(meta_file, 'r') as f:
-                meta = yaml.safe_load(f)
-            topic = "/tracks"+meta['topic'].replace("/","_")
-            msgtype = meta['message']
-            frame_id = meta['frame_id']
-            print(f"Merging processed video for topic: {topic}, message type: sensor_msgs/msg/CompressedImage")
-
-            # Read the timestamp file into a list.
-            with open(txt_file, 'r') as f:
-                timestamps = []
-                for line in f:
-                    parts = line.strip().split()
-                    if len(parts) >= 2:
-                        # The second element is the ROS timestamp (as string or integer).
-                        timestamps.append(parts[1])
-
-            # Register a connection for this topic if not already done.
-            if topic not in added_connections:
-                connection_w = writer.add_connection(topic, Detection2DArray.__msgtype__, typestore=typestore)
-                added_connections[topic] = connection_w
-            with open(tracking_file, 'rb') as f: 
-                detections = pkl.load(f)
-            
-            for frame_idx,detection in detections.items():
-                # Convert the timestamp string to int (or float) as needed.
-                if frame_idx < len(timestamps):
-                    timestamp = int(timestamps[frame_idx])
-                else:
-                    print(f"Warning: Frame index exceeds timestamp list length. Using 0 as default timestamp. [{frame_idx}]")
-                    timestamp = 0
-                    
-                # Create a Detection2DArray message.
-                header = Header(
-                    stamp=Time(sec=int(timestamp // 10**9), nanosec=int(timestamp % 10**9)),
-                    frame_id= frame_id,
-                )
-                detection_array = Detection2DArray(
-                    header = header,
-                    detections = []
-                )
-                
-                for bbox, track_id in zip(detection['bbox'], detection['track_ids']):
-                    bounding_box = BoundingBox2D(
-                        center = Pose2D(
-                            position = Point2D(
-                                x = int((bbox[0]+bbox[2])/2),
-                                y = int((bbox[1]+bbox[3])/2)
-                            ),
-                            theta = 0.0
-                        ),
-                        size_x = int(bbox[2]),
-                        size_y = int(bbox[3]),
-                    )
-                    detection_array.detections.append(Detection2D(
-                        header = header,
-                        results = [],
-                        bbox = bounding_box,
-                        id = str(track_id),
-                    ))
-                # Write the Detection2DArray message to the bag.
-                #embed()
-                data_bytes = typestore.serialize_cdr(detection_array, detection_array.__msgtype__)
-                writer.write(added_connections[topic], timestamp, data_bytes)
-    else:
-        print("No tracking file found.")
     writer.close()
     print(f"Merged processed videos into bag at: {merged_bag_path}")
     return
@@ -414,11 +244,10 @@ def process_filtered_directories(args):
     return
     
 
-def main(args):
-    args = get_parser()
+def main():
+    args = get_args()
     process_filtered_directories(args)
     return
 
 if __name__ == "__main__":
-    args = get_parser()
-    main(args)
+    main()
