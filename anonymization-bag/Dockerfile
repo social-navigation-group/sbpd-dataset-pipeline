@@ -48,13 +48,16 @@ WORKDIR /bag_ws/ByteTrack
 RUN pip3 install -r requirements.txt
 RUN python3 setup.py develop
 RUN pip3 install cython
-RUN pip3 install --upgrade 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+# RUN pip3 install --upgrade 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 RUN pip3 install cython_bbox
 
 # Download ByteTrack pretrained model
 RUN mkdir -p /bag_ws/ByteTrack/pretrained
 RUN pip3 install gdown
 RUN gdown https://drive.google.com/uc?id=1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5 -O /bag_ws/ByteTrack/pretrained/bytetrack_x_mot17.pth.tar
+
+# Dependency fix
+RUN pip3 install numpy==1.26.4
 
 WORKDIR /bag_ws
 
