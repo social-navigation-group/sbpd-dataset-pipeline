@@ -128,4 +128,4 @@ Or, use instance segmentation-based masking instead.
 
 If both `-b` and `-m` are provided, only `-m` will run. If neither is provided, anonymization will not be performed.
 
-Note: If you run `./run_filter.sh -a`, this equals to do nothing.
+Note: If you run `./run_filter.sh -a`, this will not anonymize the videos, but it will still generate the 2D bounding box tracking and skeleton keypoint detections, and integrate them into the bag files.
