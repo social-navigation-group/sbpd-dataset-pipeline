@@ -5,6 +5,7 @@ import multiprocessing as mp
 from collections import deque
 import cv2
 import torch
+import numpy as np
 
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
@@ -88,22 +89,25 @@ class VisualizationDemo:
 
         def process_predictions(frame, predictions):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            if "panoptic_seg" in predictions:
-                panoptic_seg, segments_info = predictions["panoptic_seg"]
-                vis_frame = video_visualizer.draw_panoptic_seg_predictions(
-                    frame, panoptic_seg.to(self.cpu_device), segments_info, alpha=1.0
-                )
-            elif "instances" in predictions:
+
+            if "instances" in predictions:
                 predictions = predictions["instances"].to(self.cpu_device)
-                vis_frame = video_visualizer.draw_instance_predictions(frame, predictions, alpha=1.0)
-            elif "sem_seg" in predictions:
-                vis_frame = video_visualizer.draw_sem_seg(
-                    frame, predictions["sem_seg"].argmax(dim=0).to(self.cpu_device), alpha=1.0
-                )
+                #print("instances======================================")
+                #print(predictions)
+                #create an empty frame
+                empty_frame = np.zeros_like(frame)
+                mask_frame = video_visualizer.draw_instance_predictions(empty_frame, predictions, alpha=1.0)
+                mask_frame = mask_frame.get_image()
+                # overlay the mask on the original frame
+                vis_frame = np.where(mask_frame != 0, mask_frame, frame)
+            else:
+                print("Only instance models are supported")
+                raise Exception("No instances found in predictions")
 
             # Converts Matplotlib RGB format to OpenCV BGR format
-            vis_frame = cv2.cvtColor(vis_frame.get_image(), cv2.COLOR_RGB2BGR)
-            return vis_frame
+            vis_frame = cv2.cvtColor(vis_frame, cv2.COLOR_RGB2BGR)
+            compressed_mask = (np.sum(mask_frame, axis=2) > 0)
+            return predictions, vis_frame, compressed_mask
 
         frame_gen = self._frame_from_video(video)
         if self.parallel:

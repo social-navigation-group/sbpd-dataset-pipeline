@@ -10,23 +10,24 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \
     lsb-release \
     build-essential \
-    python3-pip
+    python3-pip \
+    wget \
+    apt-utils \
+    git-all
 
 # Add the ROS2 apt repository key and repository
 RUN curl -sSL http://repo.ros2.org/repos.key | apt-key add - \
     && echo "deb [arch=$(dpkg --print-architecture)] http://repo.ros2.org/ubuntu/main $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list
 
 # Update and install ROS2 Humble Desktop (adjust if needed)
-RUN apt-get update && apt-get install -y ros-humble-desktop
+RUN apt-get update && apt-get install -y \
+    ros-humble-desktop \
+    ros-humble-rmw-cyclonedds-cpp \
+    ros-humble-rosbag2-py \
+    ros-humble-vision-msgs
 
 # Copy the requirements file from your bag_process folder into the image
 COPY requirements.txt /tmp/requirements.txt
-
-# Apt-get install additional dependencies
-RUN apt-get install -y ros-humble-rmw-cyclonedds-cpp
-RUN apt-get install -y ros-humble-rosbag2-py 
-RUN apt-get install -y wget apt-utils
-RUN apt-get install -y git-all
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
@@ -48,13 +49,10 @@ RUN git clone https://github.com/allanwangliqian/ByteTrack.git
 WORKDIR /bag_ws/ByteTrack
 RUN pip3 install -r requirements.txt
 RUN python3 setup.py develop
-RUN pip3 install cython
-# RUN pip3 install --upgrade 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-RUN pip3 install cython_bbox
+RUN pip3 install cython cython_bbox gdown
 
 # Download ByteTrack pretrained model
 RUN mkdir -p /bag_ws/ByteTrack/pretrained
-RUN pip3 install gdown
 RUN gdown https://drive.google.com/uc?id=1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5 -O /bag_ws/ByteTrack/pretrained/bytetrack_x_mot17.pth.tar
 
 WORKDIR /bag_ws

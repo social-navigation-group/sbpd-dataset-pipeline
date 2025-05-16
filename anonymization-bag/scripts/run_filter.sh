@@ -9,7 +9,7 @@
 #
 
 # Set default base path and default topics.
-DEFAULT_BASE_PATH="/bag_ws/data"
+DEFAULT_BASE_PATH="/bag_ws/data-miraikan/03-06-2025-1-test"
 DEFAULT_TOPICS=( 
     "/d455_rs1/color/camera_info" 
     "/d455_rs1/color/image_raw/compressed" 
@@ -94,11 +94,11 @@ echo "$CMD1"
 eval "$CMD1"
 
 if $use_mask; then
-    CMD2="python3 merge_videos.py --base-path \"$BASE_PATH\" --use-mask"
+    CMD2="python3 process_videos.py --base-path \"$BASE_PATH\" --use-mask"
 elif $use_blur; then
-    CMD2="python3 merge_videos.py --base-path \"$BASE_PATH\" --use-blur"
+    CMD2="python3 process_videos.py --base-path \"$BASE_PATH\" --use-blur"
 else
-    CMD2="python3 merge_videos.py --base-path \"$BASE_PATH\""
+    CMD2="python3 process_videos.py --base-path \"$BASE_PATH\""
 fi
 
 # Append additional arguments (e.g. confidence threshold) if needed.
@@ -107,3 +107,7 @@ CMD2="$CMD2 $MERGE_ADDITIONAL_ARGS"
 
 echo "$CMD2"
 eval "$CMD2"
+
+CMD3="python3 merge_videos.py \"$BASE_PATH\""
+echo "$CMD3"
+eval "$CMD3"

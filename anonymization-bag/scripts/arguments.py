@@ -1,7 +1,7 @@
 import argparse
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Anonymization script")
+    parser = argparse.ArgumentParser(description="Anonymization script for FPV data")
 
     parser.add_argument(
         "--base-path",

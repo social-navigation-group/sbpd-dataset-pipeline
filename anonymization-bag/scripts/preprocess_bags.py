@@ -147,11 +147,11 @@ def process_directory(base_path, topics_to_save):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: python rosbags_filter.py <base_path> [<topic1> <topic2> ...]")
+        print("Usage: python preprocess_bags.py <base_path> [<topic1> <topic2> ...]")
         sys.exit(1)
     
     base_path = sys.argv[1]
-    if len(sys.argv) < 2:
+    if len(sys.argv) == 2:
         print("No topics specified, all topics will be saved.")
         topics_to_save = []
     else:
