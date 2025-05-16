@@ -4,9 +4,9 @@
 
 The codes in this folder are for filtering topics and anonymization on bag files for most likely FPV videos. There are two types of anonymization provided: **detection-based** bbox blurring anonymization and **instance segmentation-based** masking anonymization. BEV videos should work too, but it is recommended to extract them from the bag files first and use the anonymization tool [here](https://github.com/social-navigation-group/sbpd-dataset-pipeline/tree/main/anonymization) to perform anonymization, because instance segmentation-based anonymization is not useful for BEV videos. 
 
-Once everything is configured, only a single `./run_filter.sh` is needed to process all the bag files in a given directory. Note that instance segmentation-based blurring takes a long time to complete.
+Once everything is configured, only a single `./run_filter.sh` is needed to process all the bag files in a given directory. The script will anonymize your video. However, to maximize the values of the anonymized videos, we will also run 2D bounding box tracking and skeleton keypoint detection on your video. So it may take a long time to finish processing the videos...
 
-This script will **reursively** search for all the bag files (that do not end with '_filtered' or '_merged') inside a given directory and perform topic filtering and anonymization. For each bag file named `<bag-name>`, the script will generate on its base path a `<bag-name>_filtered` with intermediate bag files, extracted FPV videos `<fpv-name>`, and the corresponding anonymized `<fpv-name>_processed` for each image topic in the original bag file. It will also generate a `<bag-name>_merged` with the finalized bag files.
+This script will **reursively** search for all the bag files (that do not end with '_filtered' or '_merged') inside a given directory and perform topic filtering and anonymization. For each bag file named `<bag-name>`, the script will generate on its base path a `<bag-name>_filtered` with intermediate bag files, extracted FPV videos `<fpv-name>`, and the corresponding anonymized `<fpv-name>_processed` for each image topic in the original bag file. It will also generate a `<bag-name>_merged` with the finalized bag files. Please share the `<bag-name>_merged` bag files with us. If you run into disk space problems, feel free to delete `<bag-name>_filtered` when you are finished.
 
 ## Dependencies
 Make sure you have ROS2 and CUDA installed. If not, you can use Docker to install.
@@ -89,9 +89,9 @@ Go to scripts
 cd scripts
 ```
 
-Modify `merge_videos.py`
+Modify `arguments.py`
 
-Modify the default values of `--detectron-config`, `--bytetrack-model`, and `--bytetrack_config` to be the actual paths of the detectron config path, bytetrack checkpoints path, and bytetrack config path. Use the given default values as examples to locate them.
+Modify the default values of `--segmentation-config`, `--keypoint-config`, `--bytetrack-model`, and `--bytetrack_config` to be the actual paths of the detectron config path, bytetrack checkpoints path, and bytetrack config path. Use the given default values as examples to locate them.
 
 Begin the topic filtering and anonymization process (detection-based bbox blurring).
 ```
