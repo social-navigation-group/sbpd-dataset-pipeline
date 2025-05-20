@@ -1,0 +1,71 @@
+project_name: drlvbcwp
+run_name: drlvowp0_noangle
+#load_run: False # set to true if you want to load a previous run
+# training setup
+use_wandb: False # set to false if you don't want to log to wandb
+train: True
+batch_size: 256
+epochs: 100
+gpu_ids: [0]
+num_workers: 12
+lr: 1e-3
+optimizer: adamw
+clipping: False
+max_norm: 1.
+scheduler: "step"
+step_size: 20
+step_gamma: 0.5
+warmup: False
+# warmup_epochs: 4
+# cyclic_period: 10
+# plateau_patience: 3
+# plateau_factor: 0.5
+seed: 0
+
+# model params
+
+# normalization for the action space
+normalize: True
+train_model: True
+# context
+context_type: temporal
+context_size: 4
+# tradeoff between action and distance prediction loss
+alpha: 0.0
+
+# distance bounds for distance and action and distance predictions 
+distance:
+  min_dist_cat: 0
+  max_dist_cat: 20
+action:
+  min_dist_cat: 0
+  max_dist_cat: 10
+close_far_threshold: 10 # distance threshold used to seperate the close and the far  subgoals that are sampled per datapoint
+
+# action output params
+len_traj_pred: 5
+learn_angle: False
+
+# dataset specific parameters
+image_size: [85, 64] # width, height
+goal_type: "local_coords"
+
+features_dim: 256
+
+datasets:
+  go2nus:
+    data_folder: /media/shashank/T/processed/go2nus/
+    train: /home/shashank/code/my_projects/sbpd-dataset-pipeline/robot_data_analysis/behavior_cloning/datasets/go2nus/train
+    test: /home/shashank/code/my_projects/sbpd-dataset-pipeline/robot_data_analysis/behavior_cloning/datasets/go2nus/test
+    end_slack: 0 # because many trajectories end in collisions
+
+
+# logging stuff
+## =0 turns off
+print_log_freq: 10 # in iterations
+image_log_freq: 1000 #0 # in iterations
+num_images_log: 64 #0 
+pairwise_test_freq: 0 # in epochs
+eval_fraction: 0.25
+wandb_log_freq: 10 # in iterations
+eval_freq: 5 # in epochs

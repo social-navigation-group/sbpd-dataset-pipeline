@@ -1,0 +1,39 @@
+# Robot static transforms
+static_transforms:
+  - parent: base_link
+    child: base_footprint
+    translation: [0, 0.0, -0.35]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+  
+  - parent: base_link
+    child: rslidar
+    translation: [0.14543, 0.0, 0.13312]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+  
+  - parent: base_link
+    child: front_camera_link
+    translation: [0.3215, 0.0, 0.04297]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - parent: front_camera_link
+    child: camera_link
+    translation: [0.01, 0.03, 0.06]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+# Realsense static transforms
+  - parent: camera_link
+    child: camera_depth_frame
+    translation: [0.0, -0.0, -0.0]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+  - parent: camera_depth_frame
+    child: camera_depth_optical_frame
+    translation: [0.0, -0.0, -0.0]
+    rotation: [-0.5, 0.5, -0.5, 0.5]
+  - parent: camera_link
+    child: camera_color_frame
+    translation: [-0.0005358, 0.014603, 0.0003861]
+    rotation: [0.006380522157996893, -0.0014367278199642897, 0.0007034384179860353, 0.9999783635139465]
+  - parent: camera_color_frame
+    child: camera_color_optical_frame
+    translation: [0.0, -0.0, -0.0]
+    rotation: [-0.5, 0.5, -0.5, 0.5]

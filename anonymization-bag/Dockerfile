@@ -1,5 +1,5 @@
 # Use Ubuntu 22.04 as the base image
-FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
 
 # Disable interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -27,6 +27,8 @@ RUN apt-get install -y ros-humble-rmw-cyclonedds-cpp
 RUN apt-get install -y ros-humble-rosbag2-py 
 RUN apt-get install -y wget apt-utils
 RUN apt-get install -y git-all
+RUN apt-get install -y ros-humble-vision*
+RUN apt-get install -y ros-humble-realsense*
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
@@ -36,7 +38,7 @@ WORKDIR /bag_ws
 
 # Upgrade pip and install Python dependencies
 RUN pip3 install --upgrade pip
-RUN pip3 install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+RUN pip3 install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu122
 RUN pip3 install -r /tmp/requirements.txt
 
 # Install Detectron2

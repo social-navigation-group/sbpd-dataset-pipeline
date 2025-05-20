@@ -1,10 +1,10 @@
-version: "3.3"
 services:
   bag_processor:
     build: .
     image: bag_processor
+    runtime: nvidia
     container_name: bag_processor
     volumes:
-      - /path/to/your/data:/bag_ws/data  # Mounts your host data folder into the container
+      - /media/dataset_access/:/bag_ws/data  # Mounts your host data folder into the container
       - ./scripts:/bag_ws/scripts
     tty: true           # Keeps the container running interactively

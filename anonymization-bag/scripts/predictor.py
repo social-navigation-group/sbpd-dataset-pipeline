@@ -8,9 +8,8 @@ import torch
 
 from detectron2.data import MetadataCatalog
 from detectron2.engine.defaults import DefaultPredictor
-from detectron2.utils.video_visualizer import VideoVisualizer
 from detectron2.utils.visualizer import ColorMode, Visualizer
-
+from detectron2_video_visualizer import VideoVisualizer
 
 class VisualizationDemo:
     def __init__(self, cfg, instance_mode=ColorMode.IMAGE, parallel=False):
@@ -87,6 +86,7 @@ class VisualizationDemo:
         video_visualizer = VideoVisualizer(self.metadata, self.instance_mode)
 
         def process_predictions(frame, predictions):
+            segments_info = None
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             if "panoptic_seg" in predictions:
                 panoptic_seg, segments_info = predictions["panoptic_seg"]
@@ -96,21 +96,25 @@ class VisualizationDemo:
             elif "instances" in predictions:
                 predictions = predictions["instances"].to(self.cpu_device)
                 vis_frame = video_visualizer.draw_instance_predictions(frame, predictions, alpha=1.0)
+                # segments_info = {
+                #     "pred_boxes": predictions.pred_boxes.tensor.cpu().numpy(),
+                #     "pred_classes": predictions.pred_classes.cpu().numpy(),
+                #     "scores": predictions.scores.cpu().numpy(),
+                #     "id_frame":
+                # }
             elif "sem_seg" in predictions:
                 vis_frame = video_visualizer.draw_sem_seg(
                     frame, predictions["sem_seg"].argmax(dim=0).to(self.cpu_device), alpha=1.0
-                )
-
+                )            
             # Converts Matplotlib RGB format to OpenCV BGR format
             vis_frame = cv2.cvtColor(vis_frame.get_image(), cv2.COLOR_RGB2BGR)
-            return vis_frame
+            return vis_frame, segments_info
 
         frame_gen = self._frame_from_video(video)
         if self.parallel:
             buffer_size = self.predictor.default_buffer_size
 
             frame_data = deque()
-
             for cnt, frame in enumerate(frame_gen):
                 frame_data.append(frame)
                 self.predictor.put(frame)

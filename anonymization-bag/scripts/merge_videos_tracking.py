@@ -9,8 +9,8 @@ import cv2
 import tqdm
 import yaml
 import pickle as pkl
-from detectron2.config import get_cfg
-from predictor import VisualizationDemo as Detectron2Demo
+# from detectron2.config import get_cfg
+#from predictor import VisualizationDemo as Detectron2Demo
 
 from byte_track_wrapper import ByteTrackWrapper
 
@@ -19,48 +19,13 @@ from rosbags.rosbag2 import Writer
 from rosbags.highlevel import AnyReader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg, get_types_from_idl
 from ament_index_python.packages import get_package_prefix
-# from builtin_interfaces.msg import Time
-import numpy as np
+from builtin_interfaces.msg import Time
 from rosbags.typesys.stores.ros2_humble import (
     builtin_interfaces__msg__Time as Time,
     sensor_msgs__msg__CompressedImage as CompressedImage,
-    std_msgs__msg__Header as Header
+    std_msgs__msg__Header as Header,
 )
-
-def get_color(idx):
-    idx = idx * 3
-    color = ((37 * idx) % 255, (17 * idx) % 255, (29 * idx) % 255)
-    return color
-
-def plot_tracking(image, tlwhs, obj_ids, scores=None, frame_id=0, fps=0., ids2=None):
-    im = np.ascontiguousarray(np.copy(image))
-    im_h, im_w = im.shape[:2]
-
-    top_view = np.zeros([im_w, im_w, 3], dtype=np.uint8) + 255
-
-    #text_scale = max(1, image.shape[1] / 1600.)
-    #text_thickness = 2
-    #line_thickness = max(1, int(image.shape[1] / 500.))
-    text_scale = 2
-    text_thickness = 2
-    line_thickness = 3
-
-    radius = max(5, int(im_w/140.))
-    cv2.putText(im, 'frame: %d fps: %.2f num: %d' % (frame_id, fps, len(tlwhs)),
-                (0, int(15 * text_scale)), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), thickness=2)
-
-    for i, tlwh in enumerate(tlwhs):
-        x1, y1, w, h = tlwh
-        intbox = tuple(map(int, (x1, y1, x1 + w, y1 + h)))
-        obj_id = int(obj_ids[i])
-        id_text = '{}'.format(int(obj_id))
-        if ids2 is not None:
-            id_text = id_text + ', {}'.format(int(ids2[i]))
-        color = get_color(abs(obj_id))
-        cv2.rectangle(im, intbox[0:2], intbox[2:4], color=color, thickness=line_thickness)
-        cv2.putText(im, id_text, (intbox[0], intbox[1]), cv2.FONT_HERSHEY_PLAIN, text_scale, (0, 0, 255),
-                    thickness=text_thickness)
-    return im
+import numpy as np
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 demo for builtin configs")
@@ -70,12 +35,19 @@ def get_parser():
         help="Base path to the bag files and video files",
     )
 
+    parser.add_argument(
+        "--use-tracking",
+        action="store_true",
+        help="Run Tracking only",
+    )
+
     # Detectron2 arguments
     parser.add_argument(
         "--use-mask", 
         action = "store_true", 
         help = "Instance segmentation on the video (Higher priority than blur)"
     )
+    
     parser.add_argument(
         "--confidence-threshold",
         type=float,
@@ -103,13 +75,15 @@ def get_parser():
     )
     parser.add_argument(
         "--bytetrack-model", 
-        default = "../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", 
+        #default = "/home/shashank/code/packages/ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", 
+        default= "../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar",
         type = str, 
         help = "Path to the YOLOX model"
     )
     parser.add_argument(
         "--bytetrack_config", 
-        default = "../ByteTrack/exps/example/mot/yolox_x_mix_det.py", 
+        #default = "/home/shashank/code/packages/ByteTrack/exps/example/mot/yolox_x_mix_det.py", 
+        default= "../ByteTrack/exps/example/mot/yolox_x_mix_det.py",
         type = str, 
         help = "ByteTrack experiment config file"
     )
@@ -156,6 +130,41 @@ def setup_cfg(args):
     cfg.freeze()
     return cfg
 
+def get_color(idx):
+    idx = idx * 3
+    color = ((37 * idx) % 255, (17 * idx) % 255, (29 * idx) % 255)
+    return color
+
+def plot_tracking(image, tlwhs, obj_ids, scores=None, frame_id=0, fps=0., ids2=None):
+    im = np.ascontiguousarray(np.copy(image))
+    im_h, im_w = im.shape[:2]
+
+    top_view = np.zeros([im_w, im_w, 3], dtype=np.uint8) + 255
+
+    #text_scale = max(1, image.shape[1] / 1600.)
+    #text_thickness = 2
+    #line_thickness = max(1, int(image.shape[1] / 500.))
+    text_scale = 2
+    text_thickness = 2
+    line_thickness = 3
+
+    radius = max(5, int(im_w/140.))
+    cv2.putText(im, 'frame: %d fps: %.2f num: %d' % (frame_id, fps, len(tlwhs)),
+                (0, int(15 * text_scale)), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), thickness=2)
+
+    for i, tlwh in enumerate(tlwhs):
+        x1, y1, w, h = tlwh
+        intbox = tuple(map(int, (x1, y1, x1 + w, y1 + h)))
+        obj_id = int(obj_ids[i])
+        id_text = '{}'.format(int(obj_id))
+        if ids2 is not None:
+            id_text = id_text + ', {}'.format(int(ids2[i]))
+        color = get_color(abs(obj_id))
+        cv2.rectangle(im, intbox[0:2], intbox[2:4], color=color, thickness=line_thickness)
+        cv2.putText(im, id_text, (intbox[0], intbox[1]), cv2.FONT_HERSHEY_PLAIN, text_scale, (0, 0, 255),
+                    thickness=text_thickness)
+    return im
+
 def process_video(input_video_path, output_video_path, args):
     """
     Process a single video using OpenCV.
@@ -172,53 +181,57 @@ def process_video(input_video_path, output_video_path, args):
     num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
-
     frame_idx = 0
-    
-    if args.use_mask:
+    if args.use_tracking:
+        tracker = ByteTrackWrapper(args.bytetrack_model, args.bytetrack_config)
+        out_tracks_file = output_video_path.replace("_processed.avi", "_tracks.pkl")
+        track_info = {}
+        
+    if args.use_mask: #segmentation
+        return
         cfg = setup_cfg(args)
         demo = Detectron2Demo(cfg)
-        for vis_frame in tqdm.tqdm(demo.run_on_video(cap), total=num_frames):
+        for vis_frame,id_frame in tqdm.tqdm(demo.run_on_video(cap), total=num_frames):
             frame_idx += 1
             #print(f"Processed frame {frame_idx}/{num_frames}", end='\r', flush=True)
             out.write(vis_frame)
-    else:
-        if args.use_blur:
-            tracker = ByteTrackWrapper(args.bytetrack_model, args.bytetrack_config)
-            out_tracks_file = output_video_path.replace("_processed.avi", "_tracks.pkl")
-            track_info = {}    
+    else: #blurring
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
             # TODO: Here you can add any frame processing you need. 
             save_frame = copy.deepcopy(frame)
-            if args.use_blur:
+            if args.use_blur or args.use_tracking:
                 bbox_tlwh, track_ids = tracker.update(frame)
-                track_info[frame_idx] = {'bbox': bbox_tlwh, 'track_ids': track_ids}
-                for box_index in range(len(bbox_tlwh)):
-                    top_left_x, top_left_y, bb_width, bb_height = bbox_tlwh[box_index]
-                    x1, y1, x2, y2 = int(top_left_x), int(top_left_y), int(top_left_x + bb_width), int(top_left_y + bb_height)
-
-                    # Anonymize bounding box
-                    new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
-                    x1 = max(0, x1)
-                    y1 = max(0, y1)
-                    x2 = min(width - 1, x2)
-                    new_y2 = min(height - 1, new_y2)
-                    x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
-                    if not ((x1 < x2) and (y1 < new_y2)):
-                        continue
-                    #print(f"Blurring bounding box: {x1}, {y1}, {x2}, {new_y2}")
-                    #save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
+                if args.use_blur:                    
+                    for box_index in range(len(bbox_tlwh)):
+                        top_left_x, top_left_y, bb_width, bb_height = bbox_tlwh[box_index]
+                        x1, y1, x2, y2 = int(top_left_x), int(top_left_y), int(top_left_x + bb_width), int(top_left_y + bb_height)
+                        # Anonymize bounding box
+                        new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
+                        x1 = max(0, x1)
+                        y1 = max(0, y1)
+                        x2 = min(width - 1, x2)
+                        new_y2 = min(height - 1, new_y2)
+                        x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
+                        if not ((x1 < x2) and (y1 < new_y2)):
+                            continue
+                        #print(f"Blurring bounding box: {x1}, {y1}, {x2}, {new_y2}")
+                        save_frame[y1:new_y2, x1:x2] = cv2.GaussianBlur(frame[y1:new_y2, x1:x2], (args.blur_size, args.blur_size), 0)
+                if args.use_tracking:
+                    #save the tracking info
+                    track_info[frame_idx] = {'bbox': bbox_tlwh, 'track_ids': track_ids}
+                    #save_frame = plot_tracking(save_frame, bbox_tlwh, track_ids, frame_id=frame_idx)
             frame_idx += 1
             print(f"Processed frame {frame_idx}/{num_frames}", end='\r', flush=True)
             out.write(save_frame)
-            #out.write(plot_tracking(save_frame,bbox_tlwh,track_ids))
     cap.release()
     out.release()
-    with open(out_tracks_file, 'wb') as f:
-        pkl.dump(track_info, f)
+    if args.use_tracking:
+        with open(out_tracks_file, 'wb') as f:
+            pkl.dump(track_info, f)
+        print(f"Saved tracking info to {out_tracks_file}")
     return
 
 def process_videos_in_directory(directory, args):
@@ -243,11 +256,9 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
     Using this information, open the processed video with OpenCV, and write its frames as ROS
     image messages into a new bag file (using rosbags) with the appropriate timestamp and connection info.
     """
-    # If a merged bag already exists at this path, SKIP ~remove it.~
+    # If a merged bag already exists at this path, remove it.
     if os.path.exists(merged_bag_path):
-        return
         shutil.rmtree(merged_bag_path)
-        
     
     writer = Writer(merged_bag_path)
     writer.open()
@@ -264,13 +275,7 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
     """
     typestore = get_typestore(Stores.ROS2_HUMBLE)
     typestore.register(get_types_from_msg(OCCUPANCY_GRID_UPDATE_MSG, 'map_msgs/msg/OccupancyGridUpdate'))
-    add_types = {}
-    for idl in glob.glob(os.path.join(get_package_prefix('rclpy'),"share","vision_msgs/msg/*.idl")):
-        add_types.update(get_types_from_idl(Path(idl).read_text()))
-    for idl in glob.glob(os.path.join(get_package_prefix('rclpy'),"share","realsense2_camera_msgs/msg/*.idl")):
-        add_types.update(get_types_from_idl(Path(idl).read_text()))
-    typestore.register(add_types)
-    
+
     filtered_bag_metadata = os.path.join(filtered_dir, "metadata.yaml")
     if os.path.exists(filtered_bag_metadata):
         print(f"Merging filtered bag from directory: {filtered_dir}")
@@ -288,17 +293,20 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
 
     # Find all processed video files in the directory.
     processed_videos = glob.glob(os.path.join(filtered_dir, "*_processed.avi"))
+    
     # Find the tracking file if it exists.
     tracking_files = glob.glob(os.path.join(filtered_dir, "*_tracks.pkl"))
     if tracking_files:
         #register vision_msgs types
+        add_types = {}
+        for idl in glob.glob(os.path.join(get_package_prefix('rclpy'),"share","vision_msgs/msg/*.idl")):
+            add_types.update(get_types_from_idl(Path(idl).read_text()))
+        typestore.register(add_types)
         Detection2DArray = typestore.types['vision_msgs/msg/Detection2DArray']
         Detection2D = typestore.types['vision_msgs/msg/Detection2D']
         BoundingBox2D = typestore.types['vision_msgs/msg/BoundingBox2D']
         Point2D = typestore.types['vision_msgs/msg/Point2D']
         Pose2D = typestore.types['vision_msgs/msg/Pose2D']
-        # ObjectHypothesisWithPose = typestore.types['vision_msgs/msg/ObjectHypothesisWithPose']
-        # ObjectHypothesis = typestore.types['vision_msgs/msg/ObjectHypothesis']
     for video_path in processed_videos:
         # Assume the basename is something like <safe_topic_name>_processed.avi;
         # remove the _processed part.
@@ -315,46 +323,49 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
         frame_id = meta['frame_id']
         print(f"Merging processed video for topic: {topic}, message type: sensor_msgs/msg/CompressedImage")
 
-        # # Register a connection for this topic if not already done.
-        # if topic not in added_connections:
-        #     connection_w = writer.add_connection(topic, CompressedImage.__msgtype__, typestore=typestore)
-        #     added_connections[topic] = connection_w
+        # Register a connection for this topic if not already done.
+        if topic not in added_connections:
+            connection_w = writer.add_connection(topic, CompressedImage.__msgtype__, typestore=typestore)
+            added_connections[topic] = connection_w
 
-        # # Read the timestamp file into a list.
-        # with open(txt_file, 'r') as f:
-        #     timestamps = []
-        #     for line in f:
-        #         parts = line.strip().split()
-        #         if len(parts) >= 2:
-        #             # The second element is the ROS timestamp (as string or integer).
-        #             timestamps.append(parts[1])
+        # Read the timestamp file into a list.
+        with open(txt_file, 'r') as f:
+            timestamps = []
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    # The second element is the ROS timestamp (as string or integer).
+                    timestamps.append(parts[1])
         
-        # cap = cv2.VideoCapture(video_path)
-        # frame_idx = 0
-        # while True:
-        #     ret, frame = cap.read()
-        #     if not ret:
-        #         break
-        #     # Get the corresponding timestamp from the timestamps list.
-        #     if frame_idx < len(timestamps):
-        #         # Convert the timestamp string to int (or float) as needed.
-        #         timestamp = int(timestamps[frame_idx])
-        #     else:
-        #         print(f"Warning: Frame index exceeds timestamp list length. Using 0 as default timestamp. [{frame_idx}]")
-        #         timestamp = 0
-        #     # # Convert the OpenCV frame (BGR image) to a sensor_msgs/msg/CompressedImage.
-        #     msg = CompressedImage(
-        #         Header(
-        #             stamp=Time(sec=int(timestamp // 10**9), nanosec=int(timestamp % 10**9)),
-        #             frame_id=frame_id,
-        #         ),
-        #         format='jpeg',  # could also be 'png'
-        #         data=cv2.imencode('.jpg', frame)[1],
-        #     )
-        #     data_bytes = typestore.serialize_cdr(msg, msg.__msgtype__)
-        #     writer.write(added_connections[topic], timestamp, data_bytes)
-        #     frame_idx += 1
-        # cap.release()
+        cap = cv2.VideoCapture(video_path)
+        frame_idx = 0
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            # Get the corresponding timestamp from the timestamps list.
+            if frame_idx < len(timestamps):
+                # Convert the timestamp string to int (or float) as needed.
+                timestamp = int(timestamps[frame_idx])
+            else:
+                print(f"Warning: Frame index exceeds timestamp list length. Using 0 as default timestamp. [{frame_idx}]")
+                timestamp = 0
+            # # Convert the OpenCV frame (BGR image) to a sensor_msgs/msg/CompressedImage.
+            msg = CompressedImage(
+                Header(
+                    stamp=Time(sec=int(timestamp // 10**9), nanosec=int(timestamp % 10**9)),
+                    frame_id=frame_id,
+                ),
+                format='jpeg',  # could also be 'png'
+                data=cv2.imencode('.jpg', frame)[1],
+            )
+            data_bytes = typestore.serialize_cdr(msg, msg.__msgtype__)
+            writer.write(added_connections[topic], timestamp, data_bytes)
+            frame_idx += 1
+        cap.release()
+    
+    
+    #merge the tracking file if it exists
     if tracking_files:
         for tracking_file in tracking_files:
             # Assume the basename is something like <safe_topic_name>_processed.avi;
@@ -389,7 +400,6 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
                 detections = pkl.load(f)
             
             for frame_idx,detection in detections.items():
-                #print(f'Processing frame {frame_idx} with {len(detection['bbox'][0])}')
                 # Convert the timestamp string to int (or float) as needed.
                 if frame_idx < len(timestamps):
                     timestamp = int(timestamps[frame_idx])
@@ -419,13 +429,9 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
                         size_x = int(bbox[2]),
                         size_y = int(bbox[3]),
                     )
-                    # object_hypothesis = ObjectHypothesis(
-                    #     id = 0,
-                    #     score = detection['score'],
-                    # )
                     detection_array.detections.append(Detection2D(
                         header = header,
-                        results = [],#[object_hypothesis],
+                        results = [],
                         bbox = bounding_box,
                         id = str(track_id),
                     ))
@@ -435,6 +441,7 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
                 writer.write(added_connections[topic], timestamp, data_bytes)
     else:
         print("No tracking file found.")
+    
     writer.close()
     print(f"Merged processed videos into bag at: {merged_bag_path}")
     return
@@ -455,12 +462,13 @@ def process_filtered_directories(args):
                 # Step 1: Process the videos in the directory.
                 process_videos_in_directory(filtered_dir, args)
                 # Step 2: Create a merged bag file from the processed videos.
-                merged_dir_name = d.replace("_filtered", "_tracks")
+                merged_dir_name = d.replace("_filtered", "_merged")
                 merged_bag_path = os.path.join(root, merged_dir_name)
                 merge_processed_videos(filtered_dir, merged_bag_path)
                 shutil.rmtree(filtered_dir)
     return
     
+
 def main(args):
     args = get_parser()
     process_filtered_directories(args)

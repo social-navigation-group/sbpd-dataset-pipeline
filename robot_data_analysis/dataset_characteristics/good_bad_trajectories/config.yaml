@@ -1,0 +1,55 @@
+context_size: 5 # context window for past data to use in prediction
+len_traj_eval: 15 # length of trajectory to evaluate
+# data parameters
+image_size: [85, 64] # width, height
+pcd_size: 10000
+use_pcd: False
+use_bev: False
+use_rgbd: False
+save_freq: 10 #frequence (in seconds of trajectory) to save visualization
+  
+local_planner_params:
+  num_waypoints: 3
+  name: "mppi"
+  horizon: 30
+  num_samples: 3000
+  max_steps: 100
+  dim_state: 3
+  dim_control: 2
+  sigmas: [0.5,0.5]
+  lambda_: 1.0
+  auto_lambda: False
+  occ_grid_params:
+    width: 16
+    height: 16
+    resolution: 0.05 
+    occupied_cell_value: 100.0
+    unoccupied_cell_value: 5.0
+    inflation_radius: 0.1
+    inflation_scale_factor: 0.2
+    robot_width: 0.1
+    robot_height: 0.1
+
+datasets:
+  musohu:
+    data_folder: /media/dataset_access/datasets/musohu
+    start_slack: 20
+    end_slack: 0
+    waypoint_spacing: 2
+  scand_spot:
+    data_folder: /media/dataset_access/datasets/scand_spot
+    start_slack: 20
+    end_slack: 0
+    waypoint_spacing: 2
+  scand_jackal:
+    data_folder: /media/dataset_access/datasets/scand_jackal
+    start_slack: 20
+    end_slack: 0
+    waypoint_spacing: 2
+  go2nus:
+    rebuild_cache: False
+    data_folder: /media/dataset_access/datasets/go2nus
+    start_slack: 0
+    end_slack: 0
+    waypoint_spacing: 2
+    z_height: -0.2 #for extracting scan from pcl
