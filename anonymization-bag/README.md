@@ -81,6 +81,11 @@ docker-compose exec bag_processor bash
 
 This should lead you to the workspace `bag_ws` in the container. The bag file data will be linked inside `data`, and the codes will be in `scripts`.
 
+Note: You may need to source ROS setup bash script inside the container again
+```
+source /opt/ros/humble/setup.bash
+```
+
 ## Usage
 
 ### Installed natively
