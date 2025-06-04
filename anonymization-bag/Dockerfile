@@ -1,71 +1,67 @@
-# Use Ubuntu 22.04 as the base image
 FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 
-# Disable interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update packages and install prerequisites including python3-pip
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg2 \
-    lsb-release \
-    build-essential \
-    python3-pip \
-    wget \
-    apt-utils \
-    git-all
+# Install OS-level dependencies in one layer and clean up afterwards.
+RUN apt update && \
+    apt install -y --no-install-recommends \
+      curl \
+      gnupg2 \
+      lsb-release \
+      build-essential \
+      python3-pip \
+      wget \
+      apt-utils \
+      software-properties-common \
+      git-all && \
+    add-apt-repository universe && \
+    rm -rf /var/lib/apt/lists/*
 
 # Add the ROS2 apt repository key and repository
-RUN curl -sSL http://repo.ros2.org/repos.key | apt-key add - \
-    && echo "deb [arch=$(dpkg --print-architecture)] http://repo.ros2.org/ubuntu/main $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list
+# RUN curl -sSL http://repo.ros2.org/repos.key | apt-key add - \
+#    && echo "deb [arch=$(dpkg --print-architecture)] http://repo.ros2.org/ubuntu/main $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list
+RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') && \
+    curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" && \
+    apt install /tmp/ros2-apt-source.deb
 
 # Update and install ROS2 Humble Desktop (adjust if needed)
-RUN apt-get update && apt-get install -y \
-    ros-humble-desktop \
-    ros-humble-rmw-cyclonedds-cpp \
-    ros-humble-rosbag2-py \
-    ros-humble-vision-msgs
+RUN apt update && apt-get install -y \
+        ros-humble-desktop \
+        ros-humble-rmw-cyclonedds-cpp \
+        ros-humble-rosbag2-py \
+        ros-humble-vision-msgs && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file from your bag_process folder into the image
+# Copy requirements, create workspace and install Python dependencies in one layer.
 COPY requirements.txt /tmp/requirements.txt
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-# Create a workspace directory
-RUN mkdir -p /bag_ws
-WORKDIR /bag_ws
-
-# Upgrade pip and install Python dependencies
-RUN pip3 install --upgrade pip
-RUN pip3 install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
-RUN pip3 install -r /tmp/requirements.txt
-
-# Install Detectron2
-RUN git clone https://github.com/allanwangliqian/detectron2.git
-RUN pip3 install -e detectron2
-
-# Install ByteTrack
-RUN git clone https://github.com/allanwangliqian/ByteTrack.git
-WORKDIR /bag_ws/ByteTrack
-RUN pip3 install -r requirements.txt
-RUN python3 setup.py develop
-RUN pip3 install cython cython_bbox gdown
-
-# Download ByteTrack pretrained model
-RUN mkdir -p /bag_ws/ByteTrack/pretrained
-RUN gdown https://drive.google.com/uc?id=1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5 -O /bag_ws/ByteTrack/pretrained/bytetrack_x_mot17.pth.tar
+RUN mkdir -p /bag_ws && \
+    cd /bag_ws && \
+    pip3 install --upgrade pip && \
+    pip3 install --ignore-installed torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124 && \
+    pip3 install -r /tmp/requirements.txt && \
+    rm -rf /root/.cache/pip
 
 WORKDIR /bag_ws
 
-# RUN rm -rf /var/lib/apt/lists/*
+# Install ByteTrack in one layer and remove its build files when done.
+RUN git clone https://github.com/allanwangliqian/ByteTrack.git && \
+    cd ByteTrack && \
+    pip3 install -r requirements.txt && \
+    python3 setup.py develop && \
+    pip3 install cython cython_bbox pycocotools gdown && \
+    mkdir -p pretrained && \
+    gdown https://drive.google.com/uc?id=1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5 -O pretrained/bytetrack_x_mot17.pth.tar && \
+    cd ..
+    # rm -rf ByteTrack
 
-# Copy the entrypoint script into the container and make it executable
+WORKDIR /bag_ws
+
+# Copy the entrypoint script and make it executable.
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Set the default entrypoint to source the ROS2 environment
 ENTRYPOINT ["/entrypoint.sh"]
-
-# Default command to run bash
 CMD ["bash"]
-

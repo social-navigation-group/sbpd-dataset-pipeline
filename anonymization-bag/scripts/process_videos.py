@@ -2,44 +2,24 @@
 import os
 import copy
 import cv2
-import tqdm
+import random
 
 import pickle as pkl
 import numpy as np
 
 from arguments import get_args
-from detectron2.config import get_cfg
-from predictor import VisualizationDemo as Detectron2Demo
+from ultralytics import YOLO
+from ultralytics.utils.ops import scale_image
 
 from byte_track_wrapper import ByteTrackWrapper
 from pathlib import Path
 
-def setup_cfg(args, mask=False):
-    # For detectron2 masking
-    # load config from file and command-line arguments
-    cfg = get_cfg()
-    # To use demo for Panoptic-DeepLab, please uncomment the following two lines.
-    # from detectron2.projects.panoptic_deeplab import add_panoptic_deeplab_config  # noqa
-    # add_panoptic_deeplab_config(cfg)
-    # if mask:
-    if mask:
-        cfg.merge_from_file(args.segmentation_config)
-        cfg.merge_from_list(["MODEL.WEIGHTS", args.segmentation_weights])
-    else:
-        cfg.merge_from_file(args.keypoint_config)
-        cfg.merge_from_list(["MODEL.WEIGHTS", args.keypoint_weights])
-    # Set score_threshold for builtin models
-    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
-    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = args.confidence_threshold
-    cfg.freeze()
-    return cfg
 
-def process_video_mask(cap, out, metadata, num_frames, args):
+def process_video_mask(video_path, out, metadata, num_frames, args):
     """
     Process a video using Detectron2 for instance segmentation.
     Args:
-        cap: OpenCV video capture object.
+        video_path: Path to the input video file.
         out: OpenCV video writer object.
         metadata: Metadata dictionary to store results.
         num_frames: Number of frames in the video.
@@ -47,13 +27,49 @@ def process_video_mask(cap, out, metadata, num_frames, args):
     Returns:
         metadata: Updated metadata dictionary with mask information.
     """
-    cfg = setup_cfg(args, mask=True)
-    demo = Detectron2Demo(cfg)
+
+    model = YOLO(args.segmentation_model)  # Load the segmentation model
+    colour_bank = {}
+
+    def get_colour(track_id):
+        random.seed(track_id)              
+        if track_id not in colour_bank:
+            colour_bank[track_id] = tuple(random.randint(0,255) for _ in range(3))
+        return colour_bank[track_id]
+
+    frame_idx = 0
     mask_info = []
-    for (_, vis_frame, mask_frame) in tqdm.tqdm(demo.run_on_video(cap), total=num_frames):
-        out.write(vis_frame)
-        mask_info.append(mask_frame)
-    metadata["mask_info"] = np.array(mask_info)
+    for result in model.track(source=video_path,
+                            classes=[0],            # people only
+                            persist=True,           # keep IDs
+                            stream=True,
+                            show=False,
+                            conf=args.confidence_threshold,
+                            tracker=args.segmentation_tracker,
+                            verbose=False):
+        frame_idx += 1
+        print(f"Processing frame {frame_idx}/{num_frames}", end='\r', flush=True)
+        frame = result.orig_img.copy()
+
+        mask_bin = np.zeros(frame.shape[:2], dtype=np.bool_)  # binary mask for the current frame
+        if result.masks is not None:                
+            masks = result.masks.data.cpu().numpy()  
+            masks_hwN = masks.transpose(1, 2, 0)      
+            masks_hwN = scale_image(masks_hwN, frame.shape[:2]) 
+            masks = masks_hwN.transpose(2, 0, 1) 
+
+            ids = result.boxes.id.cpu().numpy() if result.boxes.id is not None else range(len(masks))
+
+            for mask, tid in zip(masks, ids):
+                colour = get_colour(int(tid))
+                frame[mask.astype(bool)] = colour     # opaque fill
+                mask_bin[mask.astype(bool)] = True    # update binary mask
+
+        mask_info.append(mask_bin)
+        out.write(frame)
+
+    metadata["mask_info"] = mask_info
+
     return metadata
 
 def process_video_keypoints(cap, metadata, num_frames, args):
@@ -67,14 +83,28 @@ def process_video_keypoints(cap, metadata, num_frames, args):
     Returns:
         metadata: Updated metadata dictionary with keypoint information.
     """
-    cfg = setup_cfg(args, mask=False)
-    demo = Detectron2Demo(cfg)
+    model = YOLO(args.keypoint_model)  # Load the keypoint detection model
+
+    frame_idx = 0
     keypoint_info = []
-    for (predictions, _, _) in tqdm.tqdm(demo.run_on_video(cap), total=num_frames):
-        assert predictions.has("pred_keypoints")
-        keypoints = predictions.pred_keypoints
-        keypoints = np.asarray(keypoints)
-        keypoint_info.append(keypoints)
+    while cap.isOpened():
+        frame_idx += 1
+        print(f"Processing frame {frame_idx}/{num_frames}", end='\r', flush=True)
+
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        # Run inference
+        results = model(frame, conf=args.confidence_threshold, verbose=False)
+
+        frame_keypoints = []
+        for person in results[0].keypoints.data:
+            # shape: [num_keypoints, 3], where each row is [x, y, confidence]
+            keypoints = person.cpu().numpy().tolist()
+            frame_keypoints.append(keypoints)
+        keypoint_info.append(frame_keypoints)
+
     metadata["keypoint_info"] = keypoint_info
     return metadata
 
@@ -136,7 +166,6 @@ def process_video(input_video_path, output_video_path, args):
     """
     cap = cv2.VideoCapture(input_video_path)
     cap2 = cv2.VideoCapture(input_video_path)
-    cap3 = cv2.VideoCapture(input_video_path)
     if not cap.isOpened():
         print(f"Cannot open video file {input_video_path}")
         return
@@ -148,19 +177,17 @@ def process_video(input_video_path, output_video_path, args):
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
     metadata_path = output_video_path.replace("_processed.avi", "_metadata.pkl")
-    metadata = {}
-    
+    metadata = {}    
     if args.use_mask:
-        metadata = process_video_mask(cap, out, metadata, num_frames, args)
+        metadata = process_video_mask(input_video_path, out, metadata, num_frames, args)
         print("Mask processing done.")
-    metadata = process_video_tracker(cap2, out, metadata, num_frames, args)
+    metadata = process_video_tracker(cap, out, metadata, num_frames, args)
     print("Tracker processing done.")
-    metadata = process_video_keypoints(cap3, metadata, num_frames, args)
+    metadata = process_video_keypoints(cap2, metadata, num_frames, args)
     print("Keypoint processing done.")
         
     cap.release()
     cap2.release()
-    cap3.release()
     out.release()
     with open(metadata_path, 'wb') as f:
         pkl.dump(metadata, f)

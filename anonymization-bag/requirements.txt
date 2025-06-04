@@ -4,3 +4,4 @@ decord
 rosbags
 rosbags-image
 packaging
+ultralytics

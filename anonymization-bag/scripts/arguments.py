@@ -17,32 +17,24 @@ def get_args():
     parser.add_argument(
         "--confidence-threshold",
         type=float,
-        default=0.5,
+        default=0.25,
         help="Minimum score for instance predictions to be shown",
     )
     parser.add_argument(
-        "--segmentation-config",
-        default="/bag_ws/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
-        metavar="FILE",
-        help="path to segmentation config file",
+        "--segmentation-model",
+        help="segmentation model",
+        default="yolo11x-seg.pt"
     )
     parser.add_argument(
-        "--segmentation-weights",
-        help="segmentation model weights",
-        default="detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl",
-        nargs=argparse.REMAINDER,
+        "--segmentation-tracker",
+        help="segmentation tracking model",
+        default="botsort.yaml"
     )
+
     parser.add_argument(
-        "--keypoint-config",
-        default="/bag_ws/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml",
-        metavar="FILE",
-        help="path to keypoint config file",
-    )
-    parser.add_argument(
-        "--keypoint-weights",
-        help="keypoint model weights",
-        default="detectron2://COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x/137849621/model_final_a6e10b.pkl",
-        nargs=argparse.REMAINDER,
+        "--keypoint-model",
+        help="keypoint model",
+        default="yolo11x-pose.pt"
     )
 
     # ByteTrack arguments
