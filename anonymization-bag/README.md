@@ -37,10 +37,9 @@ Install pytorch (You need to install [CUDA](https://developer.nvidia.com/cuda-do
 pip3 install torch torchvision torchaudio
 ```
 
-Install the slightly modified [Detectron2](https://github.com/allanwangliqian/detectron2.git)
+Install Ultralytics
 ```
-git clone https://github.com/allanwangliqian/detectron2.git
-pip3 install -e detectron2
+pip3 install ultralytics
 ```
 
 Install the slightly modified [ByteTrack](https://github.com/allanwangliqian/ByteTrack.git)
@@ -49,7 +48,7 @@ git clone https://github.com/allanwangliqian/ByteTrack.git
 cd ByteTrack
 pip3 install -r requirements.txt
 python3 setup.py develop
-pip3 install cython
+pip3 install cython pycocotools
 pip3 install --upgrade 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 pip3 install cython_bbox
 ```
@@ -81,7 +80,7 @@ docker-compose exec bag_processor bash
 
 This should lead you to the workspace `bag_ws` in the container. The bag file data will be linked inside `data`, and the codes will be in `scripts`.
 
-Note: You may need to source ROS setup bash script inside the container again
+Source ROS setup bash script inside the container again
 ```
 source /opt/ros/humble/setup.bash
 ```
@@ -96,7 +95,7 @@ cd scripts
 
 Modify `arguments.py`
 
-Modify the default values of `--segmentation-config`, `--keypoint-config`, `--bytetrack-model`, and `--bytetrack_config` to be the actual paths of the detectron config path, bytetrack checkpoints path, and bytetrack config path. Use the given default values as examples to locate them.
+Modify the default values of `--bytetrack-model`, and `--bytetrack_config` to be the actual paths of the detectron config path, bytetrack checkpoints path, and bytetrack config path. Use the given default values as examples to locate them.
 
 Begin the topic filtering and anonymization process (detection-based bbox blurring).
 ```
@@ -134,3 +133,6 @@ Or, use instance segmentation-based masking instead.
 If both `-b` and `-m` are provided, only `-m` will run. If neither is provided, anonymization will not be performed.
 
 Note: If you run `./run_filter.sh -a`, this will not anonymize the videos, but it will still generate the 2D bounding box tracking and skeleton keypoint detections, and integrate them into the bag files.
+
+### Other notes
+If you use masking to anonymize data, feel free to modify the confidence threshold in `arguments.py` if there are too many false positives or if some humans are not picked up by the instance segmentation model.
