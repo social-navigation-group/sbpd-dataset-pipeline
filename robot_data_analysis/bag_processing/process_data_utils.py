@@ -9,8 +9,12 @@ import torchvision.transforms.functional as TF
 import scipy.spatial.transform as transform
 # from img_utils import *
 #from ros_msg_python_classes import *
-import velodyne_decoder as vd
+#import velodyne_decoder as vd
+from sensor_msgs.msg import PointCloud2
+from velodyne_msgs.msg import VelodyneScan
 import open3d as o3d
+import ros2_numpy
+from pypcd import pypcd
 
 def is_backwards(
     pos1: np.ndarray, yaw1: float, pos2: np.ndarray, eps: float = 1e-5
@@ -119,6 +123,18 @@ def nav_to_xy_yaw(odom_msg, ang_offset: float) -> Tuple[List[float], float]:
     )
     return [position.x, position.y], yaw
 
+def nav_to_xyz_yaw(odom_msg, ang_offset: float) -> Tuple[List[float], float]:
+    """
+    Process odom data from a topic that publishes nav_msgs/Odometry into position
+    """
+    position = odom_msg.pose.pose.position
+    orientation = odom_msg.pose.pose.orientation
+    yaw = (
+        quat_to_yaw(orientation.x, orientation.y, orientation.z, orientation.w)
+        + ang_offset
+    )
+    return [position.x, position.y, position.z], yaw
+
 def nav_to_xy_yaw_vel(odom_msg, ang_offset: float) -> Tuple[List[float], float]:
     """
     Process odom data from a topic that publishes nav_msgs/Odometry into position
@@ -148,7 +164,53 @@ def process_data(msg_list, process_func) -> List:
     """
     data = [process_func(msg) for msg in msg_list if msg is not None]
     return data
-  
+
+def process_pointcloud2_with_intensity(msg)-> np.ndarray:
+    '''Pulls out x, y, and z columns from the cloud recordarray, and returns
+    a 3xN matrix.
+    '''
+    cloud_array = ros2_numpy.point_cloud2.pointcloud2_to_array(msg)
+    # remove crap points
+    mask = np.isfinite(cloud_array['x']) & \
+            np.isfinite(cloud_array['y']) & \
+            np.isfinite(cloud_array['z']) & \
+            np.isfinite(cloud_array['intensity'])
+    cloud_array = cloud_array[mask]
+
+    # pull out x, y, and z values
+    points = np.zeros(cloud_array.shape + (4,), dtype=np.float32)
+    points[...,0] = cloud_array['x']
+    points[...,1] = cloud_array['y']
+    points[...,2] = cloud_array['z']
+    points[...,3] = cloud_array['intensity']
+
+    return points
+
+def process_pointcloud2_pypcd(msg) -> np.ndarray:
+    cloud_array = ros2_numpy.point_cloud2.pointcloud2_to_array(msg)
+    # remove crap points
+    mask = np.isfinite(cloud_array['x']) & \
+            np.isfinite(cloud_array['y']) & \
+            np.isfinite(cloud_array['z']) & \
+            np.isfinite(cloud_array['intensity'])
+    cloud_array = cloud_array[mask]
+    pc = pypcd.PointCloud.from_array(cloud_array)
+    return pc
+
+def process_pointcloud2(msg) -> np.ndarray:
+    """
+    Process pcl data from a topic that publishes sensor_msgs/PointCloud2 and convert it to a numpy array
+    """
+    return ros2_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
+
+def process_velodyne(msg) -> np.ndarray:
+    """
+    Process pcl data from a topic that publishes velodyne_msgs/VelodyneScan and convert it to a numpy array
+    """
+    decoder = vd.ScanDecoder(vd.Config())
+    decoded_msg = decoder.decode(msg)
+    return decoded_msg[1][:,:3]
+
 #######################################################################
 def process_detection2d(detections):
     tlwhs = []
@@ -217,12 +279,7 @@ def get_images_pcl_and_odom(
     tracking_process_func: Any,
     ang_offset: float = 0.0,
     rosversion: int = 1
-):  
-    if rosversion == 1:
-        from ros1_utils import process_pointcloud2
-    else:
-        from ros2_utils import process_pointcloud2
-        
+):          
     img_data = process_data(synced_imdata, eval(img_process_func))
     traj_data = process_odom_vel(
         synced_odomdata,
@@ -230,11 +287,16 @@ def get_images_pcl_and_odom(
         ang_offset=ang_offset,
     )
     pcl_data = None
-    if len(synced_pcldata)!=0:        
-        pcl_data = process_data(
-            synced_pcldata,
-            eval(pcl_process_func)
-        )
+    if len(synced_pcldata)!=0: 
+        if type(synced_pcldata[0]) == PointCloud2:
+            # if the pcl data is in bytes, we need to decode it
+            pcl_data = [process_pointcloud2_with_intensity(msg) for msg in synced_pcldata]
+            #pcl_data = [process_pointcloud2_pypcd(msg) for msg in synced_pcldata]
+        elif type(synced_pcldata[0]) == VelodyneScan:
+            pcl_data = [process_velodyne(msg) for msg in synced_pcldata]
+        else:
+            raise ValueError(f"Unsupported pcl data type: {type(synced_pcldata[0])}")
+        
     scan_data = None
     if len(synced_scandata)!=0:
         scan_data = process_data(

@@ -1,14 +1,14 @@
 ##https://github.com/robodhruv/visualnav-transformer
 
 scand_spot:
-  rosversion: 2
-  odomtopics: "/odom"
-  imtopics: "/image_raw/compressed"
-  img_info: ["/left/camera_info","/camera/rgb/camera_info",]
-  trackingtopics: "/tracks_image_raw_compressed"
-  tracking_process_func: "process_detection2d"
-  pcltopics: "/velodyne_points"
+  odomtopics: ["/odom"]
+  imtopics: ["/image_raw/compressed"]
+  img_info: ["/camera/rgb/camera_info"]
+  trackingtopics: ["/tracks_image_raw_compressed"]
+  pcltopics: ["/velodyne_points"]
   scantopics: ["/scan"]
+  tracking_process_func: "process_detection2d"
+  camera_intrinsics: []
   ang_offset: 0.0
   process_feats: False
   process_pcl: False
@@ -20,26 +20,20 @@ scand_spot:
   pcl_process_func: "process_pointcloud2"
   start_slack: 1
   end_slack: 1
-  feat_list:  
-      bev: 
-        x_min: -10 
-        x_max: 10
-        y_min: -10
-        y_max: 10
-        voxel_size: 0.1
+
   
 scand_jackal:
-  rosversion: 2
-  odomtopics: "/jackal_velocity_controller/odom"
-  imtopics: ["/left/image_color/compressed", "/camera/rgb/image_raw/compressed"]
-  img_info: ["/left/camera_info","/camera/rgb/camera_info"]
+  odomtopics: ["/jackal_velocity_controller/odom"]
+  imtopics:  ["/camera/rgb/image_raw/compressed","/left/image_color/compressed"]
   pcltopics: ["/velodyne_packets","/velodyne_points"]
-  scantopics: ["/velodyne_2dscan","/scan"]
-  trackingtopics: "/tracks_image_raw_compressed"
+  scantopics: [] #"/velodyne_2dscan","/scan"]
+  trackingtopics: ["/tracks_camera_rgb_image_raw_compressed","/tracks_left_image_color_compressed"]
+  img_info: ["/camera/rgb/camera_info"]
+  camera_intrinsics: []
   tracking_process_func: "process_detection2d"
   ang_offset: 0.0
   process_feats: False
-  process_pcl: False
+  process_pcl: True
   process_scan: False
   process_tracking: True
   img_process_func: "process_scand_img"
@@ -48,23 +42,16 @@ scand_jackal:
   pcl_process_func: "process_velodyne"
   start_slack: 1
   end_slack: 1
-  feat_list:  
-      bev: 
-        x_min: -10 
-        x_max: 10
-        y_min: -10
-        y_max: 10
-        voxel_size: 0.1
+
 
 musohu:
-  rosversion: 2
-  odomtopics: "/zed2/zed_node/odom"
-  imtopics: "/zed2/zed_node/rgb/image_rect_color/compressed"
-  trackingtopics: "/tracks_zed2_zed_node_rgb_image_rect_color_compressed"
+  odomtopics: ["/zed2/zed_node/odom"]
+  imtopics: ["/zed2/zed_node/rgb/image_rect_color/compressed"]
+  trackingtopics: ["/tracks_zed2_zed_node_rgb_image_rect_color_compressed"]
+  camera_intrinsics: ["/zed2/zed_node/rgb/camera_info"]
+  pcltopics: ["/velodyne_points"]
+  scantopics: []
   tracking_process_func: "process_detection2d"
-  img_info: []
-  pcltopics: "/velodyne_points"
-  scantopics: [] #["/scan"]
   ang_offset: 0.0
   process_pcl: False
   process_scan: False
@@ -77,38 +64,60 @@ musohu:
   end_slack: 1
   img_frame: "zed2_left_camera_optical_frame"
   lidar_frame: "lidar_link"
-  feat_list:  
-      bev: 
-        x_min: -10 
-        x_max: 10
-        y_min: -10
-        y_max: 10
-        voxel_size: 0.1
+
 
 # add your own datasets below:
 go2nus:
-  rosversion: 2
-  odomtopics: "/utlidar/robot_odom"
-  imtopics: "/camera/camera/color/image_raw/compressed"
-  img_info: []
-  pcltopics: "/rslidar_points"
+  odomtopics: ["/utlidar/robot_odom"]
+  imtopics: ["/camera/camera/color/image_raw/compressed"]
+  camera_intrinsics: ["/camera/camera/color/camera_info"]
+  pcltopics: ["/rslidar_points"]
   scantopics: []
-  trackingtopics: "/tracks_camera_camera_color_image_raw_compressed"
+  trackingtopics: ["/tracks_camera_camera_color_image_raw_compressed"]
+  ang_offset: 0.0
+  process_pcl: True
+  process_scan: False
+  process_tracking: False
+  img_process_func: "process_nus_dog_img"
+  odom_process_func: "nav_to_xyz_yaw" 
+  scan_process_func: ""
+  pcl_process_func: "process_pointcloud2_with_intensity"
+  tracking_process_func: "process_detection2d"
+  start_slack: 1
+  end_slack: 1
+gmu: 
+  odomtopics: ["/odom"]
+  imtopics: ["/zed2/zed_node/rgb/image_rect_color/compressed"]
+  camera_intrinsics: ["/zed2/zed_node/rgb/camera_info"]
+  pcltopics: ["/velodyne_points"]
+  scantopics: []
+  trackingtopics: ["/tracks_zed2_zed_node_rgb_image_rect_color_compressed"]
   ang_offset: 0.0
   process_pcl: True
   process_scan: False
   process_tracking: True
-  img_process_func: "process_nus_dog_img"
+  img_process_func: "process_scand_img"
   odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: ""
   pcl_process_func: "process_pointcloud2"
   tracking_process_func: "process_detection2d"
   start_slack: 1
   end_slack: 1
-  feat_list:  
-      bev: 
-        x_min: -10 
-        x_max: 10
-        y_min: -10
-        y_max: 10
-        voxel_size: 0.1
+uex: 
+  odomtopics: ["/zed/zed_node/odom"]
+  imtopics: ["/camera_360/image/compressed","/zed/zed_node/rgb/image_rect_color/compressed"]
+  camera_intrinsics: ["/zed/zed_node/rgb/camera_info"]
+  pcltopics: ["/rslidar_helios_points"]
+  scantopics: []
+  trackingtopics: ["/tracks_camera_360_image_compressed","/tracks_zed_zed_node_rgb_image_rect_color_compressed"]
+  ang_offset: 0.0
+  process_pcl: True
+  process_scan: False
+  process_tracking: True
+  img_process_func: "process_scand_img"
+  odom_process_func: "nav_to_xy_yaw_vel" 
+  scan_process_func: ""
+  pcl_process_func: "process_pointcloud2"
+  tracking_process_func: "process_detection2d"
+  start_slack: 1
+  end_slack: 1

@@ -15,10 +15,11 @@ from rosbag2_py import SequentialReader, StorageOptions, ConverterOptions, Stora
 from ros2_utils import get_synced_raw_messages_from_bag
 from nav_msgs.msg import Odometry
 from vision_msgs.msg import Detection2DArray
-from sensor_msgs.msg import PointCloud2, CompressedImage
+from sensor_msgs.msg import PointCloud2, CompressedImage, LaserScan
 import pickle as pkl
-from IPython import embed
-
+from tf2_msgs.msg import TFMessage
+from IPython import embed    
+from scipy.spatial.transform import Rotation
 def process_bag_file(bag_path,config):
     traj_name = bag_path.split("/")[-1].replace('.bag','')
     traj_name_i = traj_name + f"_{0}"
@@ -26,13 +27,20 @@ def process_bag_file(bag_path,config):
     if os.path.exists(traj_folder_i) and args.contin:
         print(f"{bag_path} already processed. Skipping...")
         return True 
-    type_map = {
-        '/utlidar/robot_odom': Odometry,
-        '/camera/camera/color/image_raw/compressed': CompressedImage,
-        '/rslidar_points': PointCloud2,
-        '/tracks_camera_camera_color_image_raw_compressed': Detection2DArray
-    }
-    #try:
+    
+    type_map = {}
+    for topic in config[args.dataset_name]['imtopics']:
+        type_map[topic] = CompressedImage
+    for topic in config[args.dataset_name]['odomtopics']:
+        type_map[topic] = Odometry
+    for topic in config[args.dataset_name]['pcltopics']:
+        type_map[topic] = PointCloud2
+    for topic in config[args.dataset_name]['trackingtopics']:
+        type_map[topic] = Detection2DArray
+    for topic in config[args.dataset_name]['scantopics']:
+        type_map[topic] = LaserScan
+    type_map['/tf_static'] = TFMessage
+    
     print(f"Processing {bag_path}...")
     storage_options = StorageOptions(uri=bag_path, storage_id='sqlite3')
     converter_options = ConverterOptions('cdr','cdr')
@@ -41,12 +49,6 @@ def process_bag_file(bag_path,config):
     storage_filter = StorageFilter(topics = list(type_map.keys()))
     reader.set_filter(storage_filter)
     b = (reader,type_map)
-    #except Exception as e:
-    #    print(e)
-    #    print(f"Error loading {bag_path}. Skipping...")
-    #   return False
-
-    # load the hdf5 file
     synced_imdata, synced_odomdata, synced_pcldata, synced_scandata, synced_trackingdata = get_synced_raw_messages_from_bag(
         b = b,
         imtopics = config[args.dataset_name]["imtopics"],
@@ -79,7 +81,8 @@ def process_bag_file(bag_path,config):
         f"{bag_path} did not have the topics we were looking for. Skipping..."
         )
         return False
-    
+    else:
+        print("Saving Processed Data...")
     traj_pos = bag_traj_data["position"]
     traj_yaws = bag_traj_data["yaw"]
     traj_linear_vels = bag_traj_data["linear_vel"]

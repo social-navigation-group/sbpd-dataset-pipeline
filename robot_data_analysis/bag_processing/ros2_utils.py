@@ -3,19 +3,12 @@ from rclpy.serialization import deserialize_message
 from rosbag2_py import SequentialReader
 from nav_msgs.msg import Odometry, OccupancyGrid
 from sensor_msgs.msg import PointCloud2, CompressedImage, LaserScan, Image
-import ros2_numpy
+from tf2_msgs.msg import TFMessage
+from tf2_ros import Buffer
+from IPython import embed
+import velodyne_decoder as vd
 
-############ Add custom processing functions here ############
-
-def process_pointcloud2(msg) -> np.ndarray:
-    """
-    Process pcl data from a topic that publishes sensor_msgs/PointCloud2 and convert it to a numpy array
-    """
-    return ros2_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
     
-
-#######################################################################
-
 def get_synced_raw_messages_from_bag(
     b: tuple,
     imtopics,
@@ -29,7 +22,7 @@ def get_synced_raw_messages_from_bag(
     message_count = {}
     for topic in bag.get_metadata().topics_with_message_count:
         message_count[topic.topic_metadata.name] = topic.message_count
-    
+    #embed()
     if type(imtopics) == str:
         imtopic = imtopics
     else:
@@ -68,6 +61,7 @@ def get_synced_raw_messages_from_bag(
             if message_count.get(tt,0) > 0:
                 trackingtopic = tt
                 break
+            
     if not imtopic or (len(pcltopics) > 0 and not pcltopic) or (len(scantopics) > 0 and not scantopic) or (len(odomtopics) > 0 and not odomtopic) or (len(trackingtopics) > 0 and not trackingtopic):
         return None, None, None, None, None
     
