@@ -1,0 +1,5 @@
+annotation_video_generation_params:
+  odom_topic:  "{value_here}"
+  pointcloud_topic: "{value_here}"
+  compressed_image_topic: "{value_here}"
+  image_encoding: "bgr" # "bgr" or "rgb"
