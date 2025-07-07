@@ -1,5 +1,6 @@
 # Annotation of Robot Actions as temporal events + Scenario Tagging
 - Step 1: Read the instructions: https://docs.google.com/document/d/1FMzO5qanRmVTddC7rCmlcdaZCVK-AfdjpvnB9VY_fV8/
+- Step 2: Check out sample videos for each category from NUS's dataset: https://drive.google.com/drive/u/1/folders/1Vfw-t9hTKwqGI_vOij0T2iOcBA7jAEai
 - Step 2: Generate Videos from your bag files: Refer to annotation_video_generation for instructions
 - Step 3: Annotate Videos!
 
@@ -10,8 +11,6 @@ Please refer to [original README](./README_original.md) for details on using the
 ___
 
 - The tool has been modified to include robot action categories, and scenario tags.
-- Please refer to the following document for instructions for Action Annotation and Scenario Tagging: https://docs.google.com/document/d/1FMzO5qanRmVTddC7rCmlcdaZCVK-AfdjpvnB9VY_fV8/.
-- You can check out videos in the following folder for examples for each label: https://drive.google.com/drive/u/1/folders/1Vfw-t9hTKwqGI_vOij0T2iOcBA7jAEai
 - The [video annotator](./via-3.x.y/src/html/_via_video_annotator.html) can be run in a browser, and video files for annotation (generated from rosbags) can be batch uploaded.
 - To modify the robot action categories, modify the following section in [_via_temporal_segmenter.js](./via-3.x.y/src/js/_via_temporal_segmenter.js) and reload the html(via-3.x.y/src/html/_via_video_annotator.html). Ensure the categories and scenario tags are consistent across all annotations.\\
 
