@@ -1,8 +1,9 @@
 # Annotation of Robot Actions as temporal events + Scenario Tagging
 - Step 1: Read the instructions: https://docs.google.com/document/d/1FMzO5qanRmVTddC7rCmlcdaZCVK-AfdjpvnB9VY_fV8/
 - Step 2: Check out sample videos for each category from NUS's dataset: https://drive.google.com/drive/u/1/folders/1Vfw-t9hTKwqGI_vOij0T2iOcBA7jAEai
-- Step 2: Generate Videos from your bag files: Refer to annotation_video_generation for instructions
-- Step 3: Annotate Videos!
+- Step 3: Generate Videos from your bag files: Refer to [annotation_video_generation](annotation_video_generation) for instructions
+- Step 3: Download our [modified annotator tool](via-3.x.y)  
+- Step 4: Annotate Videos!
 
 # Robot action annotation tool
 
