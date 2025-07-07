@@ -1,3 +1,8 @@
+# Annotation of Robot Actions as temporal events + Scenario Tagging
+Step 1: Read the instructions: https://docs.google.com/document/d/1FMzO5qanRmVTddC7rCmlcdaZCVK-AfdjpvnB9VY_fV8/
+Step 2: Generate Videos from your bag files: Refer to annotation_video_generation for instructions
+Step 3: Annotate Videos!
+
 # Robot action annotation tool
 
 Please refer to [original README](./README_original.md) for details on using the annotation tool.
