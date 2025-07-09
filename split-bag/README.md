@@ -26,6 +26,10 @@ rosbag_split_params:
 
 The script `split_rosbags.py` will split all rosbags located at the root of the `base_path` directory.
 
+## Static transforms
+
+The script assumes that the static transform data is available on the `/tf_static` topic. It is read when processing the sync signals, and is written to every split rosbag with updated timestamps.
+
 ## Output
 
 The split bag files to the same base directory, in a directory with a suffix **_split** for every bag file directory in the base directory.

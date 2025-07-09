@@ -1,11 +1,16 @@
 import rosbag2_py
+from builtin_interfaces.msg import Time
 import rclpy.serialization
 from std_msgs.msg import String, Int64      #TODO Add import here if sync command data type is other than the ones included
+from tf2_msgs.msg import TFMessage
 import os
 import yaml
 from enum import Enum
 from tqdm import tqdm
 import tempfile
+from copy import deepcopy
+
+TF_STATIC_TOPIC = "/tf_static"
 
 #TODO replace with custom values if required.
 class SyncSignal(Enum):
@@ -34,7 +39,7 @@ def load_input_params(file_path):
     with open(file=file_path) as file:
         return yaml.safe_load(file).get("rosbag_split_params")
 
-def extract_valid_intervals(bag_path, storage_id, compression, sync_command_topic, sync_command_data_type):
+def extract_valid_intervals_and_static_tf(bag_path, storage_id, compression, sync_command_topic, sync_command_data_type):
     """
     Extract valid start-stop timestamp pairs from the `sync_command_topic` topic while handling discard signals.
     """
@@ -47,30 +52,45 @@ def extract_valid_intervals(bag_path, storage_id, compression, sync_command_topi
     converter_options = rosbag2_py.ConverterOptions()
     reader.open(storage_options, converter_options)
 
-    reader.set_filter(rosbag2_py.StorageFilter(topics=[sync_command_topic]))
+    reader.set_filter(rosbag2_py.StorageFilter(topics=[sync_command_topic, TF_STATIC_TOPIC]))
 
     intervals = []
+    static_transforms_list_ = []
     start_time = None
 
     while reader.has_next():
         topic, data, timestamp = reader.read_next()
-        msg = rclpy.serialization.deserialize_message(data, sync_command_data_type).data.strip()
 
-        if msg == SyncSignal.BEGIN.value:                               # Start signal
-            if start_time is None:                                      # Considers first start if multiple start pressed
-                start_time = timestamp
+        # Process sync commands
+        if topic == sync_command_topic:
+            print("Processing sync signal message.")
+            msg = rclpy.serialization.deserialize_message(data, sync_command_data_type).data.strip()
 
-        elif msg == SyncSignal.END.value and start_time is not None:    # End signal
-            intervals.append((start_time, timestamp))
-            start_time = None                                           # Reset start_time after pairing
+            if msg == SyncSignal.BEGIN.value:                               # Start signal
+                if start_time is None:                                      # Considers first start if multiple start pressed
+                    start_time = timestamp
 
-        elif msg == SyncSignal.DISCARD.value:                           # Discard signal
-            start_time = None                                           # Reset start_time to ignore the previous start signal
+            elif msg == SyncSignal.END.value and start_time is not None:    # End signal
+                intervals.append((start_time, timestamp))
+                start_time = None                                           # Reset start_time after pairing
+
+            elif msg == SyncSignal.DISCARD.value:                           # Discard signal
+                start_time = None                                           # Reset start_time to ignore the previous start signal
+
+        # Store all tf static messages
+        elif topic == TF_STATIC_TOPIC:
+            print("Processing tf static message.")
+            tf_message_ = rclpy.serialization.deserialize_message(data, TFMessage)
+            for tf_stamped_ in tf_message_.transforms:
+                static_transforms_list_.append(tf_stamped_)
+
+    assert static_transforms_list_ is not None, f"No static transforms found in bag file {bag_path}."
+    print(f"Found {len(static_transforms_list_)} static transforms in bag file {bag_path}")
 
     del reader  # Close reader
-    return intervals
+    return intervals, static_transforms_list_
 
-def split_rosbag(bag_path, storage_id, intervals, compression, output_bag_path):
+def split_rosbag(bag_path, storage_id, intervals, compression, output_bag_path, static_transforms_list):
     """
     Reads messages from the original bag and writes valid ones to new bag files based on intervals.
     """
@@ -120,6 +140,17 @@ def split_rosbag(bag_path, storage_id, intervals, compression, output_bag_path):
 
                 writing = True
 
+                # Write /tf static messages with start timestamp of the split bag
+                static_tf_message_ = TFMessage()
+                updated_stamp_ = Time(sec=int(timestamp/1e9), nanosec=int(1e9 * (timestamp/1e9 - int(timestamp/1e9))))
+                for tf_stamped_ in static_transforms_list:
+                    tf_stamped_copy_ = deepcopy(tf_stamped_)
+                    tf_stamped_copy_.header.stamp = updated_stamp_
+                    static_tf_message_.transforms.append(tf_stamped_copy_)
+
+                data_ = rclpy.serialization.serialize_message(static_tf_message_)
+                writer.write(TF_STATIC_TOPIC, data_, timestamp)
+
             if writing and in_valid_range and topic != "/sync_command":
                 writer.write(topic, data, timestamp)
 
@@ -156,7 +187,7 @@ if __name__ == "__main__":
 
         # Saves the bag file to the same directory (base_path) with a suffix _split
         output_bag_path = os.path.join(base_path, f'{bag_file_name}_split')
-        valid_intervals = extract_valid_intervals(bag_path=bag_file_path, storage_id=storage_id, compression=compression, sync_command_topic=sync_command_topic, sync_command_data_type=sync_command_data_type)
+        valid_intervals, static_transforms_list = extract_valid_intervals_and_static_tf(bag_path=bag_file_path, storage_id=storage_id, compression=compression, sync_command_topic=sync_command_topic, sync_command_data_type=sync_command_data_type)
         print(f"Extracted trajectory interval timestamps: {valid_intervals}")
-        split_rosbag(bag_path=bag_file_path, storage_id=storage_id, intervals=valid_intervals, compression=compression, output_bag_path=output_bag_path)
+        split_rosbag(bag_path=bag_file_path, storage_id=storage_id, intervals=valid_intervals, compression=compression, output_bag_path=output_bag_path, static_transforms_list=static_transforms_list)
 
