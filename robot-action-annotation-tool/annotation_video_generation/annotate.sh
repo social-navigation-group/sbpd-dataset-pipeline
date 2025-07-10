@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_PATH=/path/to/directory         # change this to path with all anonymized split bags
+BASE_PATH=/path/to/directory       # change this to path to directory with all anonymized split bags
 
 dir_list=()
 for dir in "$BASE_PATH"/*/; do
@@ -14,8 +14,6 @@ done
 # Iterate over the list and print each directory
 for BAG_FILE_NAME in "${dir_list[@]}"; do
     echo "[annotate.sh] Processing file: $BAG_FILE_NAME"
-
-    BAG_FILE_NAME=deck_new_4_with_overhead_2025-04-10_12-21-26_1
 
     mkdir -p ./temp_files/${BAG_FILE_NAME}/clouds
     mkdir -p ./temp_files/${BAG_FILE_NAME}/fpv_images

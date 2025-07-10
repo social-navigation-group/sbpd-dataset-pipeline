@@ -7,13 +7,13 @@ Scripts to generate videos to annotate robot action labels
 1. Replace the value for `BASE_PATH` [here](./annotate.sh) with the path containing all bag files. (No nested directory structure for split bags). Videos for all bag files placed under `BASE_PATH` will be generated.
 2. To experiment with view parameters (described below), test with one/two bags under `BASE_PATH`, and place all bag files once view parameters are confirmed. Or uncomment the break statement at the end of [`annotate.sh`](./annotate.sh).
 3. Fill parameter values in [params.yaml](./params.yaml)
-4. **From this folder**, run [`annotate.sh`](./annotate.sh)
+4. **From this (annotation_video_generation) folder**, run [`annotate.sh`](./annotate.sh)
 
 > **Dependencies**:
 - ffmpeg
 - pyvista, rosbag2_py, tqdm, yaml (python)
 
-All output video files (with the same name as input rosbag) will be written to this folder.
+All output video files (with the same name as input rosbag) will be written to the current folder.
 
 ___
 
@@ -23,8 +23,7 @@ Working of the scripts is explained below. The script generates some temporary f
 
 1. Read the bag file
 2. Write all pointclouds to individual pkl files (`./temp_files/{BAG_FILE_NAME}/clouds/`)
-3. Downsample odometry and write to one pkl file (`./temp_files/{BAG_FILE_NAME}/odom.pkl`)
-4. Save odom and pcl index association to a separate file (`./temp_files/{BAG_FILE_NAME}/pcl_odom_association.pkl`)
+3. Writes a list of poses from odometry data corresponding (by closest message timestamp) to each pointcloud (`./temp_files/{BAG_FILE_NAME}/odom.pkl`)
 5. Construct frames with odometry trajectory and robot velocity arrow, save to `./temp_files/{BAG_FILE_NAME}/images/`
 
 ### Writes video from frames
