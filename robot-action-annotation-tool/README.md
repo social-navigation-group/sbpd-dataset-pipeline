@@ -3,7 +3,7 @@
 - Step 2: Check out sample videos for each category from NUS's dataset: https://drive.google.com/drive/u/1/folders/1Vfw-t9hTKwqGI_vOij0T2iOcBA7jAEai
 - Step 3: Generate Videos from your bag files: Refer to [annotation_video_generation](annotation_video_generation) for instructions
 - Step 3: Download our [modified annotator tool](via-3.x.y)  
-- Step 4: Annotate Videos!
+- Step 4: Annotate Videos based on the instructions. **Remember to save the annotations using the Floppy Disk icon in the tool!**
 
 # Robot action annotation tool
 
@@ -43,8 +43,7 @@ var scenario_tag_options = {
 
 ### Points to note:
 
-1. **Annotations should be saved using the [floppy disk] save icon (i.e. save project) option in the tool.**
-2. The annotations will be saved in a .json file with the same name as the corresponding video file. This saves some redundant information in the .json file, but will be handled by our parsing script.
-3. Loading too many (> 20) or large video files at once can cause the tool to hang, resulting in unsaved progress being lost.
+1. The annotations will be saved in a .json file with the same name as the corresponding video file. This saves some redundant information in the .json file, but will be handled by our parsing script.
+2. Loading too many (> 20) or large video files at once can cause the tool to hang, resulting in unsaved progress being lost.
 
 > **WARNING: all unsaved changes are lost on refreshing/reloading the browser window.**
