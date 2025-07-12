@@ -43,7 +43,7 @@ var scenario_tag_options = {
 
 ### Points to note:
 
-1. Annotations should be saved using the [floppy disk] save icon (i.e. save project) option in the tool.
+1. **Annotations should be saved using the [floppy disk] save icon (i.e. save project) option in the tool.**
 2. The annotations will be saved in a .json file with the same name as the corresponding video file. This saves some redundant information in the .json file, but will be handled by our parsing script.
 3. Loading too many (> 20) or large video files at once can cause the tool to hang, resulting in unsaved progress being lost.
 
