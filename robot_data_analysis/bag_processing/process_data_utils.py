@@ -16,6 +16,15 @@ import open3d as o3d
 import ros2_numpy
 from pypcd import pypcd
 
+# Try to import custom BinaryMask message type
+try:
+    from custom_msgs.msg import BinaryMask
+    BINARY_MASK_AVAILABLE = True
+except ImportError:
+    print("Warning: custom_msgs.msg.BinaryMask not available. Mask processing will be skipped.")
+    BINARY_MASK_AVAILABLE = False
+    BinaryMask = None
+
 def is_backwards(
     pos1: np.ndarray, yaw1: float, pos2: np.ndarray, eps: float = 1e-5
 ) -> bool:
@@ -43,12 +52,23 @@ def quat_to_yaw(
     yaw = np.arctan2(t3, t4)
     return yaw
 
+def process_image(msg) -> Image:
+    """
+    Process image data from a topic that publishes sensor_msgs/CompressedImage to a PIL image
+    """
+    # convert sensor_msgs/CompressedImage to PIL image
+    img = Image.open(io.BytesIO(msg.data))
+    #print(img.size)
+    #IMAGE_SIZE = (msg.width, msg.height)
+    # resize image to IMAGE_SIZE
+    #img = img.resize(IMAGE_SIZE)
+    return img
+
 def process_nus_dog_img(msg) -> Image:
     """
     Process image data from a topic that publishes sensor_msgs/CompressedImage to a PIL image for the scand dataset
     """
     IMAGE_SIZE = (848, 480)
-    IMAGE_ASPECT_RATIO = 16 / 9
     # convert sensor_msgs/CompressedImage to PIL image
     img = Image.open(io.BytesIO(msg.data))
     # center crop image to aspect ratio
@@ -226,6 +246,24 @@ def process_detection2d(detections):
         obj_ids.append(box.id)
     return tlwhs,obj_ids
 
+def process_binary_mask(mask_msg) -> np.ndarray:
+    """
+    Process binary mask data from a topic that publishes custom_msgs/BinaryMask
+    and convert it to a numpy array
+    """
+    if not BINARY_MASK_AVAILABLE or mask_msg is None:
+        return None
+    
+    # Extract mask data
+    width = mask_msg.width
+    height = mask_msg.height
+    mask_data = np.array(mask_msg.data, dtype=np.bool_)
+    
+    # Reshape to 2D array
+    mask_2d = mask_data.reshape((height, width))
+    
+    return mask_2d
+
 # cut out non-positive velocity segments of the trajectory
 def filter_trajectories(
     img_list: List[Image.Image],
@@ -267,20 +305,37 @@ def filter_trajectories(
     return [traj_pairs]
 
 def get_images_pcl_and_odom(
-    synced_imdata, 
+    synced_imdata,  # Now can be a dictionary {topic: [messages]} or legacy list
     synced_odomdata, 
     synced_pcldata, 
     synced_scandata,
     synced_trackingdata,
-    img_process_func: Any,
-    pcl_process_func: Any,
-    odom_process_func: Any,
-    scan_process_func: Any,
-    tracking_process_func: Any,
+    synced_maskdata=None,  # Dictionary {topic: [messages]} for masks
+    img_process_func: Any = None,
+    pcl_process_func: Any = None,
+    odom_process_func: Any = None,
+    scan_process_func: Any = None,
+    tracking_process_func: Any = None,
+    mask_process_func: Any = None,
     ang_offset: float = 0.0,
     rosversion: int = 1
 ):          
-    img_data = process_data(synced_imdata, eval(img_process_func))
+    # Process multiple image streams
+    bag_img_data = {}
+    if isinstance(synced_imdata, dict):
+        # Multi-camera case - process each camera's data
+        for topic, img_list in synced_imdata.items():
+            if img_list:  # Only process if we have data
+                bag_img_data[topic] = process_data(img_list, eval(img_process_func))
+    else:
+        # Legacy single camera case (backward compatibility)
+        if synced_imdata:
+            bag_img_data['single'] = process_data(synced_imdata, eval(img_process_func))
+    
+    # If only one camera, return in legacy format for backward compatibility
+    if len(bag_img_data) == 1:
+        bag_img_data = next(iter(bag_img_data.values()))
+    
     traj_data = process_odom_vel(
         synced_odomdata,
         eval(odom_process_func),
@@ -307,5 +362,19 @@ def get_images_pcl_and_odom(
     if len(synced_trackingdata)!=0:
         process_func = eval(tracking_process_func)
         track_data = [process_func(msg) for msg in synced_trackingdata]
+    
+    # Process mask data (similar to multi-camera image processing)
+    mask_data = {}
+    if synced_maskdata and mask_process_func:
+        for topic, mask_list in synced_maskdata.items():
+            if mask_list:  # Only process if we have data
+                process_func = eval(mask_process_func)
+                mask_data[topic] = [process_func(msg) for msg in mask_list]
+    
+    # If only one mask topic, return in legacy format for backward compatibility
+    if len(mask_data) == 1:
+        mask_data = next(iter(mask_data.values()))
+    elif len(mask_data) == 0:
+        mask_data = None
         
-    return img_data, traj_data, pcl_data, scan_data, track_data
+    return bag_img_data, traj_data, pcl_data, scan_data, track_data, mask_data
