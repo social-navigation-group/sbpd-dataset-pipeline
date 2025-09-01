@@ -1,0 +1,14 @@
+rosbags/*
+output/*
+.git
+*.bag
+build/
+devel/
+log/
+*.pyc
+__pycache__/
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~

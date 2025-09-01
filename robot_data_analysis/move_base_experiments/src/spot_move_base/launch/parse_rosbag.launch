@@ -1,0 +1,33 @@
+<launch>
+    <!-- Base link to lidar transform -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="base_link_to_rslidar"  args="0.1453 0 0.13312 0 0 0 /base_link /rslidar 10" /> -->
+    <param name="use_sim_time" type="bool" value="true"/>
+    <!-- <node pkg="tf" type="static_transform_publisher" name="base_link_to_body"  args="0 0 0 0 0 0 /body /base_link 50" /> -->
+    <node pkg="tf" type="static_transform_publisher" name="body_to_velodyne"  args="0 0 0 0 0 0 /base_link /lidar_link 50" />
+    
+    <!-- republish odom to tf -->
+    <param name="odom_topic" type="str" value="$(arg odom_topic)" />
+    <node name="tf_republisher" pkg="lidar_rosbag_parser" type="tf_republisher.py" output="screen" required="true"/>
+
+    <!-- convert pointcloud to laserscan -->
+    <include file="$(find pointcloud_to_laserscan)/launch/pointcloud_to_laserscan_node.launch" /> 
+
+    <!--    run spot_move_base-->
+    <include file="$(find spot_move_base)/launch/spot_move_base_sim.launch" />
+
+    <!--    data parser node -->
+    <arg name="rosbag_path" default=""/>
+    <arg name="save_data_path" default="/home/shashank/code/my_projects/BCSAN/"/>
+    <arg name="viz_lidar" default="false" />
+    <arg name="odom_topic" default="" />
+    <arg name="lidar_topic" default="" />
+
+    <param name="rosbag_path" type="str" value="$(arg rosbag_path)" />
+    <param name="save_data_path" type="str" value="$(arg save_data_path)" />
+    <param name="robot_name" type="str" value="spot" />
+    <param name="viz_lidar" type="str" value="$(arg viz_lidar)" />
+    <param name="odom_topic" type="str" value="$(arg odom_topic)" />
+    <param name="lidar_topic" type="str" value="$(arg lidar_topic)" />
+    <node name="listen_record_data" pkg="lidar_rosbag_parser" type="listen_record_data.py" output="screen" required="true"/>
+
+</launch>

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  move_base_experiments:
+    build: .
+    container_name: move_base_experiments
+    volumes:
+      # Mount rosbag directory (update this path to where your rosbags are stored)
+      # Change the left side to your actual rosbag directory path
+      - ./ros2_bags/:/rosbags:ro
+      # Mount output directory for results
+      - ./output:/output
+      # Mount the current directory to sync with container
+      - .:/catkin_ws
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_MASTER_URI=http://localhost:11311
+      - ROS_IP=127.0.0.1
+    network_mode: host
+    stdin_open: true
+    tty: true
+    # Uncomment if you need GUI support (for rviz, etc.)
+    # volumes:
+    #   - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    # environment:
+    #   - DISPLAY=${DISPLAY}
+    #   - QT_X11_NO_MITSHM=1
+    
