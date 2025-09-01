@@ -114,7 +114,6 @@ if __name__ == "__main__":
         with open(f'rgb_results/people_stats_{dataset_name}.pkl', 'rb') as f:
             stats = pickle.load(f)
         
-            
         total_duration = stats['total_duration']
         proportion_area_covered_per_trajectory = stats['proportion_area_covered']
         ped_count_per_trajectory = stats['pedestrian_count']
@@ -130,49 +129,43 @@ if __name__ == "__main__":
         proportion_area_covered[dataset_name] = np.array(proportion_area_covered[dataset_name])
             
         print(f"=====Dataset {dataset_name} statistics=====")
-        x = np.arange(0, np.max(total_people_counts[dataset_name]) + 1)
-        y1 = np.bincount(total_people_counts[dataset_name]) * 100.0 / len(total_people_counts[dataset_name])
-        
-        fig, axs = plt.subplots(1, 2, figsize=(14, 6))
-
-        # Left subplot: Number of people per frame
-        bars = axs[0].bar(x, y1)
-        axs[0].set_xlabel("Number of people (detected) in the frame")
-        axs[0].set_ylabel("% of dataset")
-        axs[0].set_title("Distribution of Pedestrian Counts per Frame")
-        axs[0].grid(axis='y', linestyle='--', alpha=0.7)
-
-        # Right subplot: Proportion of frame covered by people
-        # Plot as a line graph (density curve) instead of histogram
-
-        density = gaussian_kde(proportion_area_covered[dataset_name])
-        xs = np.linspace(0, proportion_area_covered[dataset_name].max(), 200)
-        axs[1].plot(xs, density(xs), color='green', lw=2)
-        axs[1].set_xlabel("Proportion of frame covered by people")
-        axs[1].set_ylabel("% of dataset")
-        axs[1].set_title("Distribution of Proportion Area Covered")
-        axs[1].grid(axis='y', linestyle='--', alpha=0.7)
-
-        plt.tight_layout()
-        plt.savefig(f"people_density_2d_analysis_{dataset_name}.png")
-        
-        # if d3:
-        #     fig,axs = plt.subplots(1, 1, figsize=(14, 6))
-        #     bins = np.linspace(0, np.max(distance_of_pedestrians_from_robot), 30)
-        #     axs.hist(distance_of_pedestrians_from_robot, bins=bins, color='orange', alpha=0.7, edgecolor='black')
-        #     axs.set_xlabel("Distance of pedestrians from robot (meters)")
-        #     axs.set_ylabel("Count")
-        #     axs.set_title("Distribution of Pedestrian Distances")
-        #     axs.grid(axis='y', linestyle='--', alpha=0.7)
-        #     plt.tight_layout()
-        #     plt.savefig(f"people_distance_3d_analysis_{dataset_name}.png")
-        
         print(f"Total duration (at 4hz sample rate):{total_duration/(SAMPLE_RATE*3600)} hours") #frames/fps
         print(f"""Duration with no (detected) people:{np.sum(total_people_counts[dataset_name] == 0) / len(total_people_counts[dataset_name]) * 100}%""")
         print(f"Average number of people per timestep:{total_people_counts[dataset_name].mean()}")
         print(f"Average proportion of the frame covered by people: {proportion_area_covered[dataset_name].mean()*100.0}%")
         #print(stats)
     
+    # find 2 timsteps in the go2nus dataset with 10 people detected and very different proportion of area covered
+    # Find 2 timesteps in go2nus dataset with 10 people and very different area coverage
+    go2nus_stats = {}
+    with open(f'rgb_results/people_stats_go2nus.pkl', 'rb') as f:
+        go2nus_stats = pickle.load(f)
+
+    ped_count_per_traj = go2nus_stats['pedestrian_count']
+    area_covered_per_traj = go2nus_stats['proportion_area_covered']
+
+    timesteps_with_10_people = []
+    for traj_name, counts in ped_count_per_traj.items():
+        for timestep, count in enumerate(counts):
+            if count == 8:
+                area_coverage = area_covered_per_traj[traj_name][timestep]
+                timesteps_with_10_people.append((traj_name, timestep, area_coverage))
+
+    if len(timesteps_with_10_people) >= 2:
+        # Sort by area coverage to find most different
+        timesteps_with_10_people.sort(key=lambda x: x[2])
+        min_coverage = timesteps_with_10_people[0]
+        max_coverage = timesteps_with_10_people[-1]
+        
+        print(f"Timestep with 10 people and minimum area coverage:")
+        print(f"  Trajectory: {min_coverage[0]}, Timestep: {min_coverage[1]}, Area coverage: {min_coverage[2]:.4f}")
+        print(f"Timestep with 10 people and maximum area coverage:")
+        print(f"  Trajectory: {max_coverage[0]}, Timestep: {max_coverage[1]}, Area coverage: {max_coverage[2]:.4f}")
+    else:
+        print(f"Found only {len(timesteps_with_10_people)} timesteps with exactly 10 people")
+    
+    
+        
     #combine scand_spot and scand_jackal datasets
     total_people_counts['scand'] = np.concatenate(
         [total_people_counts['scand_spot'], total_people_counts['scand_jackal']]
@@ -189,40 +182,48 @@ if __name__ == "__main__":
     # Plot combined stats with 5 subplots: 
     # 1. Pedestrian counts histogram/density
     # 2. Proportion area covered density
-    # 3. Average number of people
-    # 4. Average proportion area covered
-    # 5. Proportion of frames with no people detected
 
-    # Make the first row much bigger and the bars wider for readability
-
-    fig = plt.figure(figsize=(30, 20))
-    gs = GridSpec(2, 3, height_ratios=[2, 1], hspace=0.2, wspace=0.25)
-
-    # Top row: two wide subplots
-    ax_top0 = fig.add_subplot(gs[0, :2])
-    ax_top1 = fig.add_subplot(gs[0, 2])
+    fig = plt.figure(figsize=(20, 10))
+    axs = fig.subplots(1, 2)
 
     # Assign a color to each dataset for consistency
     colors = plt.cm.tab10.colors
     dataset_names = list(total_people_counts.keys())
     color_map = {name: colors[i % len(colors)] for i, name in enumerate(dataset_names)}
+    
+    # 1. Pedestrian counts histogram - stacked
+    max_count = max([counts.max() for counts in total_people_counts.values()])
+    bins = np.arange(0, max_count + 2)
 
-    # 1. Pedestrian counts histogram (spanning first two columns of top row)
-    bins = np.arange(0, max([counts.max() for counts in total_people_counts.values()]) + 2) - 0.5
-    width = 0.7 / max(1, len(total_people_counts))  # wider bars
-    for i, (dataset_name, counts) in enumerate(total_people_counts.items()):
+    # Create histograms for each dataset
+    for dataset_name, counts in total_people_counts.items():
         hist, _ = np.histogram(counts, bins=bins, density=True)
-        ax_top0.bar(
-            bins[:-1] + i * width, hist*100.0, width=width, alpha=0.85,
-            label=f"{dataset_name}", edgecolor='black', color=color_map[dataset_name]
-        )
-    #ax_top0.set_xlabel("Number of people (detected) in the frame", fontsize=16)
-    ax_top0.set_ylabel("% of Dataset", fontsize=16)
-    ax_top0.set_title("Number of Pedestrian Detections in Image", fontsize=18)
-    ax_top0.legend(fontsize=13)
-    ax_top0.grid(axis='y', linestyle='--', alpha=0.7)
-    ax_top0.tick_params(axis='both', labelsize=14)
-    ax_top0.set_xlabel("(a)", fontsize=16)
+        hist_percent = hist * 100  # Convert to percentage
+        axs[0].step(bins[:-1], hist_percent, where='post', lw=2, 
+                    label=f"{dataset_name}", color=color_map[dataset_name])
+        
+        # Add arrows and text for values that exceed ylim
+        ylim_max = 20
+        for i, (bin_start, value) in enumerate(zip(bins[:-1], hist_percent)):
+            if value > ylim_max:
+                # Add arrow pointing up at the top of the bin
+                axs[0].annotate(f'{value:.1f}', 
+                               xy=(bin_start, ylim_max), 
+                               xytext=(bin_start, ylim_max - 2),
+                               ha='center', va='top',
+                               fontsize=10,
+                               color=color_map[dataset_name],
+                               arrowprops=dict(arrowstyle='->', 
+                                             color=color_map[dataset_name],
+                                             lw=1.5))
+    
+    axs[0].set_ylabel("% of Dataset", fontsize=16)
+    axs[0].set_title("Number of Pedestrian Detections in Image", fontsize=18)
+    axs[0].legend(fontsize=13)
+    axs[0].grid(axis='y', linestyle='--', alpha=0.7)
+    axs[0].tick_params(axis='both', labelsize=14)
+    axs[0].set_xlabel("(a)", fontsize=16)
+    axs[0].set_ylim(0,20)
 
     # 2. Proportion area covered density (spanning last column of top row)
     max_prop = max([props.max() for props in proportion_area_covered.values()])
@@ -230,66 +231,33 @@ if __name__ == "__main__":
     for dataset_name, props in proportion_area_covered.items():
         if len(props) > 1:
             density = gaussian_kde(props)
-            ax_top1.plot(
-                x_vals_prop, density(x_vals_prop), lw=1.5, label=f"{dataset_name}", 
+            density_values = density(x_vals_prop)
+            axs[1].plot(
+                x_vals_prop, density_values, lw=1.5, label=f"{dataset_name}", 
                 color=color_map[dataset_name]
             )
-    #ax_top1.set_xlabel("Proportion of frame covered by people", fontsize=16)
-    ax_top1.set_ylabel("% of Dataset", fontsize=16)
-    ax_top1.set_title("Proportion of Image Area covered by Detected Pedestrians", fontsize=18)
-    ax_top1.legend(fontsize=13)
-    ax_top1.grid(axis='y', linestyle='--', alpha=0.7)
-    ax_top1.tick_params(axis='both', labelsize=14)
-    ax_top1.set_xlabel("(b)", fontsize=16)
-    # Bottom row: 3 plots
-    axs = [fig.add_subplot(gs[1, i]) for i in range(3)]
-
-    # 3. Average number of people
-    avg_people = [counts.mean() for counts in total_people_counts.values()]
-    std_people = [counts.std() for counts in total_people_counts.values()]
-    axs[0].bar(
-        dataset_names, avg_people, color=[color_map[name] for name in dataset_names], width=0.7,
-        yerr=std_people, capsize=5
-    )
-    axs[0].set_ylabel("Average # people", fontsize=14)
-    axs[0].set_title("Average Number of Pedestrian Detections per Image frame", fontsize=15)
-    for i, p in enumerate(avg_people):
-        axs[0].text(i, p + 0.05, f"{p:.2f}", ha='center', va='bottom', fontsize=12)
-    axs[0].tick_params(axis='x', labelsize=13)
-    axs[0].tick_params(axis='y', labelsize=13)
-    axs[0].set_ylim(top=max(avg_people) + 1)  # Increase top limit for more space above bars/text
-    axs[0].set_xlabel("(c)", fontsize=16)
-    # 4. Average proportion area covered
-    avg_prop = [props.mean() * 100 for props in proportion_area_covered.values()]
-    std_prop = [props.std() * 100 for props in proportion_area_covered.values()]
-    axs[1].bar(
-        dataset_names, avg_prop, color=[color_map[name] for name in dataset_names], width=0.7,
-        yerr=std_prop, capsize=5
-    )
-    axs[1].set_ylabel("Average % area covered", fontsize=14)
-    axs[1].set_title("Average Proportion of Image Area Covered by Detected Pedestrians", fontsize=15)
-    for i, a in enumerate(avg_prop):
-        axs[1].text(i, a + 0.05, f"{a:.2f}%", ha='center', va='bottom', fontsize=12)
-    axs[1].tick_params(axis='x', labelsize=13)
-    axs[1].tick_params(axis='y', labelsize=13)
-    axs[1].set_ylim(top=max(avg_prop) + 3)  # Increase top limit for more space above bars/text
-    axs[1].set_xlabel("(d)", fontsize=16)
-    # 5. Proportion of frames with no people detected
-    no_people_prop = [
-        (counts == 0).sum() / len(counts) * 100 for counts in total_people_counts.values()
-    ]
-    axs[2].bar(
-        dataset_names, no_people_prop, color=[color_map[name] for name in dataset_names], width=0.7
-    )
-    axs[2].set_ylabel("% frames with no people", fontsize=14)
-    axs[2].set_title("Proportion of Dataset with No People Detected in Image Frame", fontsize=15)
-    for i, v in enumerate(no_people_prop):
-        axs[2].text(i, v + 0.5, f"{v:.2f}%", ha='center', va='bottom', fontsize=12)
-    axs[2].tick_params(axis='x', labelsize=13)
-    axs[2].tick_params(axis='y', labelsize=13)
-    axs[2].set_ylim(top=max(no_people_prop) + 5)  # Increase top limit for more space above bars/text
-    axs[2].set_xlabel("(e)", fontsize=16)
-    plt.tight_layout()
-    # plt.axis('off')
-    plt.savefig("combined_people_density_2d_analysis.svg", format='svg', bbox_inches='tight')
-    plt.show()    
+            
+            # Add arrows and text for values that exceed ylim
+            ylim_max = 20
+            for i, (x_val, y_val) in enumerate(zip(x_vals_prop, density_values)):
+                if y_val > ylim_max and x_val == 0:
+                    # Add arrow pointing up at the peak
+                    axs[1].annotate(f'{y_val:.1f}', 
+                                   xy=(x_val, ylim_max), 
+                                   xytext=(x_val -0.01, ylim_max - 2),
+                                   ha='center', va='top',
+                                   fontsize=10,
+                                   color=color_map[dataset_name],
+                                   arrowprops=dict(arrowstyle='->', 
+                                                 color=color_map[dataset_name],
+                                                 lw=1.5))
+    #axs[1].set_xlabel("Proportion of frame covered by people", fontsize=16)
+    axs[1].set_ylabel("% of Dataset", fontsize=16)
+    axs[1].set_title("Proportion of Image Area covered by Detected Pedestrians", fontsize=18)
+    axs[1].legend(fontsize=13)
+    axs[1].grid(axis='y', linestyle='--', alpha=0.7)
+    axs[1].tick_params(axis='both', labelsize=14)
+    axs[1].set_xlabel("(b)", fontsize=16)
+    axs[1].set_ylim(0,20)
+    plt.savefig('combined_trimmed_people_density_analysis.svg', bbox_inches='tight', dpi=300)
+    # plt.show()    

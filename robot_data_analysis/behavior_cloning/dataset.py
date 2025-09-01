@@ -364,6 +364,7 @@ class BCDataset(Dataset):
         robot_positions = traj_data["position"][start_index:end_index:self.waypoint_spacing] 
         pedestrian_position_map = torch.zeros((L,L,1), dtype=torch.int32)
         pedestrian_velocity_map = torch.zeros((L,L,2),dtype=torch.float32)
+        
         # Assuming x-axis is pointing north, y-axis is pointing left, and the robot is at the bottom center of the map
         # Convert the pedestrian positions into a pedestrian map in the robot's local frame
         # where a cell in the frame has a value of 1 if a pedestrian is in that cell
@@ -392,7 +393,13 @@ class BCDataset(Dataset):
                     # Assign velocity to the map
                     if map_x>=0 and map_x<pedestrian_velocity_map.shape[1] and map_y>=0 and map_y<pedestrian_velocity_map.shape[0]:
                         pedestrian_velocity_map[map_x, map_y] = torch.tensor([pedestrian_displacement[0], pedestrian_displacement[1]])*self.data_config['sample_rate']
-
+                        
+        #clamp and scale
+        v_min = -2 #max negative velocity
+        v_max = 2 #max positive velocitys
+        pedestrian_velocity_map = torch.clamp(pedestrian_velocity_map, min=v_min, max=v_max)
+        pedestrian_velocity_map = 2.0*(pedestrian_velocity_map - v_min) / (v_max - v_min) + (-1)
+        
         return pedestrian_position_map, pedestrian_velocity_map
 
     def process_scan(self,scan_data:Tuple):

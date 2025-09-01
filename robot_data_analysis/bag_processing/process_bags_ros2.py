@@ -3,7 +3,7 @@
 import os
 import pickle
 import argparse
-import tqdm
+from tqdm import tqdm
 import yaml
 import json
 import multiprocessing
@@ -16,6 +16,7 @@ from ros2_utils import get_synced_raw_messages_from_bag
 from nav_msgs.msg import Odometry
 from vision_msgs.msg import Detection2DArray
 from sensor_msgs.msg import PointCloud2, CompressedImage, LaserScan
+from velodyne_msgs.msg import VelodyneScan
 import pickle as pkl
 from tf2_msgs.msg import TFMessage
 from IPython import embed    
@@ -35,7 +36,10 @@ def process_bag_file(bag_path,config):
     for topic in config[args.dataset_name]['odomtopics']:
         type_map[topic] = Odometry
     for topic in config[args.dataset_name]['pcltopics']:
-        type_map[topic] = PointCloud2
+        if 'packet' in topic:
+            type_map[topic] = VelodyneScan
+        else:
+            type_map[topic] = PointCloud2
     for topic in config[args.dataset_name]['trackingtopics']:
         type_map[topic] = Detection2DArray
     for topic in config[args.dataset_name]['scantopics']:
@@ -158,7 +162,7 @@ def process_bag_file(bag_path,config):
     else:
         num_frames = len(bag_img_data)
     
-    for i in range(max(config[args.dataset_name]['start_slack'], 0), min(num_frames, len(traj_pos)) - config[args.dataset_name]['end_slack']):
+    for i in tqdm(range(max(config[args.dataset_name]['start_slack'], 0), min(num_frames, len(traj_pos)) - config[args.dataset_name]['end_slack'])):
         # Save images - handle multi-camera case
         if isinstance(bag_img_data, dict) and len(bag_img_data) > 1:
             # Multi-camera case
@@ -255,6 +259,10 @@ def main(args: argparse.Namespace):
 
     if args.input_bag:
         bag_files = [args.input_bag]
+    elif args.file_list:
+        with open(args.file_list, 'r') as f:
+            lines = f.readlines()
+            bag_files = [os.path.join(args.input_dir, line.strip()) for line in lines if line.strip()]
     else:
         # collect bag files
         bag_files = []
@@ -271,7 +279,7 @@ def main(args: argparse.Namespace):
     with multiprocessing.Pool(processes=args.num_workers) as pool:
         partial_func = partial(process_bag_file, config=config)
         results = list(
-            tqdm.tqdm(
+            tqdm(
                 pool.imap_unordered(partial_func, bag_files),
                 total=len(bag_files),
                 desc="Bags processed",
@@ -293,13 +301,13 @@ if __name__ == "__main__":
         "-d",
         type=str,
         help="name of the dataset (must be in process_config.yaml)",
-        default="scand",
-        required=True,
+        default="scand_jackal",
+        required=False,
     )
     parser.add_argument(
         "--input-dir",
         "-i",
-        default=None,
+        default="/media/dataset_access/scand_jackal_ros2",
         type=str,
         help="path of the datasets with rosbags",
         required=False,
@@ -315,7 +323,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output-dir",
         "-o",
-        default="../datasets/",
+        default="/media/shashank/T/processed/scand_jackal",
         type=str,
         help="path for processed dataset (default: ../datasets/)",
     )
@@ -353,7 +361,9 @@ if __name__ == "__main__":
         action="store_true",
         help="do not overwrite processed bags",
     )
-    
+    parser.add_argument(
+        "--file-list",
+    )
     args = parser.parse_args()
     print(f"STARTING PROCESSING {args.dataset_name.upper()} DATASET")
     main(args)

@@ -134,9 +134,9 @@ def process_directory(base_path, output_path, topics_to_save):
         if 'metadata.yaml' in files:
             bag_dir = root
             # Skip processing if this bag_dir itself ends with '_filtered'
-            if bag_dir.endswith('_filtered') or bag_dir.endswith('_merged'):
-                print(f"Skipping already filtered or merged directory: {bag_dir}")
-                continue
+            # if bag_dir.endswith('_filtered') or bag_dir.endswith('_merged'):
+            #     print(f"Skipping already filtered or merged directory: {bag_dir}")
+            #     continue
 
             parent_dir, bag_name = os.path.split(bag_dir)
             output_bag_dir = os.path.join(output_path, bag_name + "_filtered")

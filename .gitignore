@@ -1,5 +1,9 @@
 *.avi
 *.tar
 *.pyc
-
+*.png
+*.jpg
+*.pkl
+.vscode/
+*.pt
 logs/

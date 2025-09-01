@@ -58,6 +58,7 @@ datasets:
     train: /home/shashank/code/my_projects/sbpd-dataset-pipeline/robot_data_analysis/behavior_cloning/datasets/go2nus/train
     test: /home/shashank/code/my_projects/sbpd-dataset-pipeline/robot_data_analysis/behavior_cloning/datasets/go2nus/test
     end_slack: 0 # because many trajectories end in collisions
+    waypoint_spacing: 1
 
 
 # logging stuff

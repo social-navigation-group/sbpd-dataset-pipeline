@@ -262,6 +262,8 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
     
     writer = Writer(merged_bag_path)
     writer.open()
+    if os.path.exists(merged_bag_path):
+        return
     os.makedirs(merged_bag_path, exist_ok=True)
     added_connections = {}  # topic: connection handle
 
@@ -289,7 +291,8 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
                 writer.write(added_connections[connection.topic], timestamp, rawdata)
         print("Finished merging messages from the filtered bag file.")
     else:
-        raise Exception("No filtered bag file found in this directory.")
+        print("No filtered bag file found in this directory.")
+        return
 
     # Find all processed video files in the directory.
     processed_videos = glob.glob(os.path.join(filtered_dir, "*_processed.avi"))
@@ -465,7 +468,7 @@ def process_filtered_directories(args):
                 merged_dir_name = d.replace("_filtered", "_merged")
                 merged_bag_path = os.path.join(root, merged_dir_name)
                 merge_processed_videos(filtered_dir, merged_bag_path)
-                shutil.rmtree(filtered_dir)
+                #shutil.rmtree(filtered_dir)
     return
     
 

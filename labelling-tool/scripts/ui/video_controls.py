@@ -12,12 +12,15 @@ from PyQt6.QtWidgets import (
 )
 
 class VideoControls(QWidget):
-    def __init__(self, resource_manager: str, parent = None):
+    def __init__(self, resource_manager: str, parent = None,video_path=None):
         super().__init__(parent)
         self.resource_manager = resource_manager
         self.resources_path = self.resource_manager.resources_path
         self.video_player = VideoPlayer(self, self.resource_manager, self)
-
+        if video_path:
+            self.video_path = video_path
+        else:
+            self.video_path=None
         # VIDEO FILE DROPDOWN
         self.video_dropdown = QComboBox()
         self.populate_video_list()
@@ -28,15 +31,17 @@ class VideoControls(QWidget):
 
     def populate_video_list(self):
         """Scans the default directory and populates the dropdown with available videos."""
-        videos_path = os.path.join(self.resources_path, "videos")
-        video_files = list_video_files(videos_path)
+        if self.video_path:
+            video_files = list_video_files(self.videos_path)
+        else:
+            videos_path = os.path.join(self.resources_path, "videos")
         self.video_dropdown.clear()
 
         if not video_files:
             log_info("No video files found in the directory.")
             self.video_dropdown.addItem("No videos found")
         else:
-            log_info(f"Found {len(video_files)} video files in {videos_path}")
+            log_info(f"Found {len(video_files)} video files in {self.videos_path}")
             self.video_dropdown.addItem("Select a video")
             self.video_dropdown.addItems(video_files)
 

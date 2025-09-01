@@ -315,46 +315,46 @@ def merge_processed_videos(filtered_dir, merged_bag_path):
         frame_id = meta['frame_id']
         print(f"Merging processed video for topic: {topic}, message type: sensor_msgs/msg/CompressedImage")
 
-        # # Register a connection for this topic if not already done.
-        # if topic not in added_connections:
-        #     connection_w = writer.add_connection(topic, CompressedImage.__msgtype__, typestore=typestore)
-        #     added_connections[topic] = connection_w
+        # Register a connection for this topic if not already done.
+        if topic not in added_connections:
+            connection_w = writer.add_connection(topic, CompressedImage.__msgtype__, typestore=typestore)
+            added_connections[topic] = connection_w
 
-        # # Read the timestamp file into a list.
-        # with open(txt_file, 'r') as f:
-        #     timestamps = []
-        #     for line in f:
-        #         parts = line.strip().split()
-        #         if len(parts) >= 2:
-        #             # The second element is the ROS timestamp (as string or integer).
-        #             timestamps.append(parts[1])
+        # Read the timestamp file into a list.
+        with open(txt_file, 'r') as f:
+            timestamps = []
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    # The second element is the ROS timestamp (as string or integer).
+                    timestamps.append(parts[1])
         
-        # cap = cv2.VideoCapture(video_path)
-        # frame_idx = 0
-        # while True:
-        #     ret, frame = cap.read()
-        #     if not ret:
-        #         break
-        #     # Get the corresponding timestamp from the timestamps list.
-        #     if frame_idx < len(timestamps):
-        #         # Convert the timestamp string to int (or float) as needed.
-        #         timestamp = int(timestamps[frame_idx])
-        #     else:
-        #         print(f"Warning: Frame index exceeds timestamp list length. Using 0 as default timestamp. [{frame_idx}]")
-        #         timestamp = 0
-        #     # # Convert the OpenCV frame (BGR image) to a sensor_msgs/msg/CompressedImage.
-        #     msg = CompressedImage(
-        #         Header(
-        #             stamp=Time(sec=int(timestamp // 10**9), nanosec=int(timestamp % 10**9)),
-        #             frame_id=frame_id,
-        #         ),
-        #         format='jpeg',  # could also be 'png'
-        #         data=cv2.imencode('.jpg', frame)[1],
-        #     )
-        #     data_bytes = typestore.serialize_cdr(msg, msg.__msgtype__)
-        #     writer.write(added_connections[topic], timestamp, data_bytes)
-        #     frame_idx += 1
-        # cap.release()
+        cap = cv2.VideoCapture(video_path)
+        frame_idx = 0
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            # Get the corresponding timestamp from the timestamps list.
+            if frame_idx < len(timestamps):
+                # Convert the timestamp string to int (or float) as needed.
+                timestamp = int(timestamps[frame_idx])
+            else:
+                print(f"Warning: Frame index exceeds timestamp list length. Using 0 as default timestamp. [{frame_idx}]")
+                timestamp = 0
+            # # Convert the OpenCV frame (BGR image) to a sensor_msgs/msg/CompressedImage.
+            msg = CompressedImage(
+                Header(
+                    stamp=Time(sec=int(timestamp // 10**9), nanosec=int(timestamp % 10**9)),
+                    frame_id=frame_id,
+                ),
+                format='jpeg',  # could also be 'png'
+                data=cv2.imencode('.jpg', frame)[1],
+            )
+            data_bytes = typestore.serialize_cdr(msg, msg.__msgtype__)
+            writer.write(added_connections[topic], timestamp, data_bytes)
+            frame_idx += 1
+        cap.release()
     if tracking_files:
         for tracking_file in tracking_files:
             # Assume the basename is something like <safe_topic_name>_processed.avi;
@@ -445,6 +445,7 @@ def process_filtered_directories(args):
     In each such directory, process videos and merge the processed results into a bag.
     """
     base_path = args.base_path
+    print(base_path)
     if not os.path.exists(base_path):
         raise FileNotFoundError(f"Base path {base_path} does not exist.")
     for root, dirs, files in os.walk(base_path):
@@ -458,7 +459,7 @@ def process_filtered_directories(args):
                 merged_dir_name = d.replace("_filtered", "_tracks")
                 merged_bag_path = os.path.join(root, merged_dir_name)
                 merge_processed_videos(filtered_dir, merged_bag_path)
-                shutil.rmtree(filtered_dir)
+                #shutil.rmtree(filtered_dir)
     return
     
 def main(args):

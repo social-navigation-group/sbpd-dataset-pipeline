@@ -15,7 +15,10 @@ from rosbag2_py import SequentialReader, StorageOptions, ConverterOptions, Stora
 from ros2_utils import get_synced_raw_messages_from_bag
 from nav_msgs.msg import Odometry
 from vision_msgs.msg import Detection2DArray
-from sensor_msgs.msg import PointCloud2, CompressedImage
+from sensor_msgs.msg import PointCloud2, CompressedImage, LaserScan
+from velodyne_msgs.msg import VelodyneScan
+from sensor_msgs.msg import CameraInfo
+from tf2_msgs.msg import TFMessage
 import pickle as pkl
 from IPython import embed
 
@@ -26,14 +29,22 @@ def process_bag_file(bag_path,config):
     if not os.path.exists(traj_folder_i):
         print(f"{bag_path} bag not present...")
         return True 
-    type_map = {
-        #'/utlidar/robot_odom': Odometry,
-        config[args.dataset_name]['odomtopics']: Odometry,
-        #'/camera/camera/color/image_raw/compressed': CompressedImage,
-        config[args.dataset_name]['imtopics']: CompressedImage,
-        config[args.dataset_name]['pcltopics']: PointCloud2,
-        config[args.dataset_name]['trackingtopics']: Detection2DArray
-    }
+    
+    type_map = {}
+    for topic in config[args.dataset_name]['imtopics']:
+        type_map[topic] = CompressedImage
+    for topic in config[args.dataset_name]['odomtopics']:
+        type_map[topic] = Odometry
+    for topic in config[args.dataset_name]['pcltopics']:
+        if 'packets' in topic:
+            type_map[topic] = VelodyneScan
+        else:
+            type_map[topic] = PointCloud2
+    for topic in config[args.dataset_name]['trackingtopics']:
+        type_map[topic] = Detection2DArray
+    for topic in config[args.dataset_name]['scantopics']:
+        type_map[topic] = LaserScan
+
     #try:
     print(f"Processing {bag_path}...")
     storage_options = StorageOptions(uri=bag_path, storage_id='sqlite3')
@@ -43,12 +54,7 @@ def process_bag_file(bag_path,config):
     storage_filter = StorageFilter(topics = list(type_map.keys()))
     reader.set_filter(storage_filter)
     b = (reader,type_map)
-    #except Exception as e:
-    #    print(e)
-    #    print(f"Error loading {bag_path}. Skipping...")
-    #   return False
-
-    # load the hdf5 file
+    
     synced_imdata, synced_odomdata, synced_pcldata, synced_scandata, synced_trackingdata = get_synced_raw_messages_from_bag(
         b = b,
         imtopics = config[args.dataset_name]["imtopics"],
@@ -159,19 +165,19 @@ def main(args: argparse.Namespace):
         bag_files = bag_files[: args.num_trajs]
     # multiprocessingodel
     
-    with multiprocessing.Pool(processes=args.num_workers) as pool:
-        partial_func = partial(process_bag_file, config=config)
-        results = list(
-            tqdm.tqdm(
-                pool.imap_unordered(partial_func, bag_files),
-                total=len(bag_files),
-                desc="Bags processed",
-            )
-        )
-    # results = []
-    # for bag_path in tqdm.tqdm(bag_files, desc="Bags processed"):
-    #     p = process_bag_file(bag_path, config)
-    #     results.append(p)
+    # with multiprocessing.Pool(processes=args.num_workers) as pool:
+    #     partial_func = partial(process_bag_file, config=config)
+    #     results = list(
+    #         tqdm.tqdm(
+    #             pool.imap_unordered(partial_func, bag_files),
+    #             total=len(bag_files),
+    #             desc="Bags processed",
+    #         )
+    #     )
+    results = []
+    for bag_path in tqdm.tqdm(bag_files, desc="Bags processed"):
+        p = process_bag_file(bag_path, config)
+        results.append(p)
         
     for bag_path, success in zip(bag_files, results):
         if success:

@@ -251,7 +251,7 @@ def mppi_planner(env,mppi_params,render=False):
 def occupancy_grid_planner(name,goal,occ_grid,grid_params,planner_params,start=[0,0],render=False):
     if name == 'dstar':       
         center = (np.array(occ_grid.shape)/2).astype(np.int64)
-        grid_goal = np.int64(np.array(goal[:2])/grid_params['resolution']) + center
+        grid_goal = np.int64(np.array(goal[:2])/grid_params['resolution']) + cente`r
         grid_start = np.array(start) + center
    
         theta = np.arctan2(

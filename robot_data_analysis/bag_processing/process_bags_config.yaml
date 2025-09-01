@@ -14,11 +14,12 @@ scand_spot:
   process_pcl: False
   process_scan: False
   process_tracking: True
+  process_masks: False
   img_process_func: "process_scand_img"
   odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: "ros_msg_to_json"
   pcl_process_func: "process_pointcloud2"
-  start_slack: 1
+  start_slack: 2
   end_slack: 1
 
   
@@ -33,9 +34,10 @@ scand_jackal:
   tracking_process_func: "process_detection2d"
   ang_offset: 0.0
   process_feats: False
-  process_pcl: True
+  process_pcl: False
   process_scan: False
   process_tracking: True
+  process_masks: False
   img_process_func: "process_scand_img"
   odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: "ros_msg_to_json"
@@ -56,6 +58,7 @@ musohu:
   process_pcl: False
   process_scan: False
   process_tracking: True
+  process_masks: False
   img_process_func: "process_scand_img"
   odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: "ros_msg_to_json"
@@ -77,14 +80,16 @@ go2nus:
   ang_offset: 0.0
   process_pcl: True
   process_scan: False
-  process_tracking: False
+  process_tracking: True
+  process_masks: False
   img_process_func: "process_nus_dog_img"
-  odom_process_func: "nav_to_xyz_yaw" 
+  odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: ""
   pcl_process_func: "process_pointcloud2_with_intensity"
   tracking_process_func: "process_detection2d"
   start_slack: 1
   end_slack: 1
+  
 gmu: 
   odomtopics: ["/odom"]
   imtopics: ["/zed2/zed_node/rgb/image_rect_color/compressed"]
@@ -96,13 +101,14 @@ gmu:
   process_pcl: True
   process_scan: False
   process_tracking: True
-  img_process_func: "process_scand_img"
+  img_process_func: "process_image"
   odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: ""
   pcl_process_func: "process_pointcloud2"
   tracking_process_func: "process_detection2d"
   start_slack: 1
   end_slack: 1
+
 uex: 
   odomtopics: ["/zed/zed_node/odom"]
   imtopics: ["/camera_360/image/compressed","/zed/zed_node/rgb/image_rect_color/compressed"]
@@ -110,14 +116,39 @@ uex:
   pcltopics: ["/rslidar_helios_points"]
   scantopics: []
   trackingtopics: ["/tracks_camera_360_image_compressed","/tracks_zed_zed_node_rgb_image_rect_color_compressed"]
+  masktopics: ["/masks_camera_360_image_compressed","/masks_zed_zed_node_rgb_image_rect_color_compressed"]
   ang_offset: 0.0
   process_pcl: True
   process_scan: False
   process_tracking: True
-  img_process_func: "process_scand_img"
+  process_masks: True
+  img_process_func: "process_image"
   odom_process_func: "nav_to_xy_yaw_vel" 
   scan_process_func: ""
   pcl_process_func: "process_pointcloud2"
   tracking_process_func: "process_detection2d"
+  mask_process_func: "process_binary_mask"
+  start_slack: 1
+  end_slack: 1
+
+umich:
+  odomtopics: ["/odom"]
+  imtopics: ["/camera/color/image_raw/compressed"]
+  camera_intrinsics: ["/camera/color/camera_info"]
+  pcltopics: ["/velodyne_points"]
+  scantopics: []
+  trackingtopics: ["/tracks_camera_color_image_raw_compressed"]
+  masktopics: []
+  ang_offset: 0.0
+  process_pcl: True
+  process_scan: False
+  process_tracking: True
+  process_masks: False
+  img_process_func: "process_image"
+  odom_process_func: "nav_to_xy_yaw_vel" 
+  scan_process_func: ""
+  pcl_process_func: "process_pointcloud2"
+  tracking_process_func: "process_detection2d"
+  mask_process_func: "process_binary_mask"
   start_slack: 1
   end_slack: 1

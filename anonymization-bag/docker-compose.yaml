@@ -6,5 +6,9 @@ services:
     container_name: bag_processor
     volumes:
       - /media/dataset_access/:/bag_ws/data  # Mounts your host data folder into the container
+      - /media/shashank/T/processed:/bag_ws/processed
+      - /media/shashank/ssd2/:/bag_ws/U
       - ./scripts:/bag_ws/scripts
+      - ../anonymization:/bag_ws/scripts_video
+      - /mnt/nas/SocNavDatasets/Go2NUS/Go-Pro Videos/go2_bev_videos/test_video_anonymization:/bag_ws/test_video_anonymization
     tty: true           # Keeps the container running interactively

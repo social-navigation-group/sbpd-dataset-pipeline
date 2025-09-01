@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         main_splitter = QSplitter(Qt.Orientation.Horizontal, self)
 
         # UI COMPONENTS
-        self.video_controls = VideoControls(self.resource_manager, self)
+        self.video_controls = VideoControls(self.resource_manager, self,self.resource_manager.video_path)
         self.tab_dialog = TabDialog(self.video_controls)
 
         main_splitter.addWidget(self.video_controls)

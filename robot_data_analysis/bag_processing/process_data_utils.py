@@ -15,6 +15,8 @@ from velodyne_msgs.msg import VelodyneScan
 import open3d as o3d
 import ros2_numpy
 from pypcd import pypcd
+from IPython import embed
+import velodyne_decoder as vd
 
 # Try to import custom BinaryMask message type
 try:
@@ -222,14 +224,6 @@ def process_pointcloud2(msg) -> np.ndarray:
     Process pcl data from a topic that publishes sensor_msgs/PointCloud2 and convert it to a numpy array
     """
     return ros2_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
-
-def process_velodyne(msg) -> np.ndarray:
-    """
-    Process pcl data from a topic that publishes velodyne_msgs/VelodyneScan and convert it to a numpy array
-    """
-    decoder = vd.ScanDecoder(vd.Config())
-    decoded_msg = decoder.decode(msg)
-    return decoded_msg[1][:,:3]
 
 #######################################################################
 def process_detection2d(detections):

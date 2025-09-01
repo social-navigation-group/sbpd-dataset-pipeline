@@ -13,8 +13,8 @@ from define_area import select_area
 def get_args():
     parser = argparse.ArgumentParser(description="Anonymize a video using ByteTrack")
     # Paths
-    parser.add_argument("--model", default = "../../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", type = str, help = "Path to the YOLOX model")
-    parser.add_argument("--experiment-config", default = "../../ByteTrack/exps/example/mot/yolox_x_mix_det.py", type = str, help = "ByteTrack experiment config file")
+    parser.add_argument("--model", default = "../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", type = str, help = "Path to the YOLOX model")
+    parser.add_argument("--experiment-config", default = "../ByteTrack/exps/example/mot/yolox_x_mix_det.py", type = str, help = "ByteTrack experiment config file")
     parser.add_argument("--video", required = True, type = str, help = "Path to the folder that contains video files") # default="./videos"
     parser.add_argument("--output", default="./videos_anonymized", type = str, help = "Path to the folder that contains anonymized video files")
     parser.add_argument("--trajectory-output", default = "./trajectories", type = str, help = "Path to save the automated trajectories")
@@ -25,8 +25,8 @@ def get_args():
     parser.add_argument("--blur-all", action = "store_true", help = "Blur entire video frames")
     parser.add_argument("--blur-black", action = "store_true", help = "Paint everything black")
     parser.add_argument("--shallow-size", default = 21, type = int, help = "Size of the shallow blur kernel for full frame anonymization")
-    parser.add_argument("--blur-size", default = 41, type = int, help = "Size of the blur kernel")
-    parser.add_argument("--blur-pct", default = 0.5, type = float, help = "Percentage of the bounding box to blur")
+    parser.add_argument("--blur-size", default = 51, type = int, help = "Size of the blur kernel")
+    parser.add_argument("--blur-pct", default = 0.2, type = float, help = "Percentage of the bounding box to blur")
     parser.add_argument("--blur-min", default = 25, type = int, help = "Minimum pixels of the bounding box to blur")
 
     # Tracking parameters
@@ -64,7 +64,8 @@ def get_args():
         print(f"ERROR: The output path {args.output} is not a folder.")
         exit(1)
     if not os.path.exists(args.trajectory_output):
-        os.makedirs(args.trajectory_output)
+        os.makedirs(args.trajectory_output,'anonymized_10fps')
+        os.makedirs(args.trajectory_output,'trajectories')
     elif not os.path.isdir(args.trajectory_output):
         print(f"ERROR: The trajectory output path {args.trajectory_output} is not a folder.")
         exit(1)
@@ -109,8 +110,8 @@ def main(args):
         output_path = os.path.join(args.output, video_file)
     if not args.no_track:
         traj_fname = os.path.splitext(video_file)[0] + ".toml"
-        trajectory_path = os.path.join(args.trajectory_output, traj_fname)
-        trajectory_video_path = os.path.join(args.trajectory_output, video_file)
+        trajectory_path = os.path.join(args.trajectory_output,'trajectories', traj_fname)
+        trajectory_video_path = os.path.join(args.trajectory_output,'anonymized_10fps',video_file)
     if args.restrict_area:
         area_fname = traj_fname.replace(".toml", ".yaml")
         area_path = os.path.join(args.area_path, area_fname)

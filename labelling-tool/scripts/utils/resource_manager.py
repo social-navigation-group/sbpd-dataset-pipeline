@@ -4,13 +4,13 @@ from .logging_utils import log_info, log_warning
 class ResourceManager:
     """Handles resource file paths dynamically"""
 
-    def __init__(self, base_path: str):
+    def __init__(self, base_path: str,video_path: str = ''):
         self.video_name = ""
         self.base_path = base_path
 
         self.resources_path = os.path.join(self.base_path, "resources")
         self.icon_path = os.path.join(self.resources_path, "icons")
-        self.video_path = os.path.join(self.resources_path, "videos")
+        self.video_path = video_path
         self.config_path = os.path.join(self.resources_path, "config")
 
     def get_icon(self, sub_folder: str, name: str):

@@ -82,8 +82,8 @@ for t in "${TOPICS[@]}"; do
     CMD1+=" \"$t\""
 done
 
-echo "$CMD1"
-eval "$CMD1"
+# echo "$CMD1"
+# eval "$CMD1"
 
 if $use_mask; then
     CMD2="python3 merge_videos_tracking.py --base-path \"$BASE_PATH\" --use-mask"
