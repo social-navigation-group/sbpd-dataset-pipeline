@@ -1,0 +1,135 @@
+##https://github.com/robodhruv/visualnav-transformer
+ # add your own datasets below:
+ubonn:
+    odomtopics: ["/go1_controller/odom"] 
+    imtopics: ["/fpv"] 
+    pcltopics: ["/velodyne_points"]  
+    scantopics: [] 
+    trackingtopics: ["/tracks_fpv"] 
+    masktopics: ["/masks_fpv"] 
+    speech_topic: "/recording" 
+    ang_offset: 0.0
+    process_pcl: True
+    process_scan: False
+    process_tracking: True
+    process_masks: True
+    img_process_func: "process_image"
+    odom_process_func: "nav_to_xy_yaw_vel" 
+    scan_process_func: ""
+    speech_process_func: "process_string_speech"
+    pcl_process_func: "process_pointcloud2_with_intensity"
+    tracking_process_func: "process_detection2d"
+    start_slack: 0
+    end_slack: 0
+
+
+
+miraikan:
+    odomtopics: ["/odom"]
+    imtopics: ["/d455_rs1/color/image_raw/compressed"]
+    pcltopics: ["/velodyne_points"] 
+    scantopics: []
+    trackingtopics: ["/tracks_d455_rs1_color_image_raw_compressed"] 
+    masktopics: ['/masks_d455_rs1_color_image_raw_compressed']
+    speech_topic: "/cabot/event"
+    ang_offset: 0.0
+    process_pcl: True
+    process_scan: False
+    process_tracking: True
+    process_masks: True
+    img_process_func: "process_image"
+    odom_process_func: "nav_to_xy_yaw_vel" 
+    scan_process_func: ""
+    speech_process_func: "process_string_speech"
+    pcl_process_func: "process_pointcloud2_with_intensity"
+    tracking_process_func: "process_detection2d"
+    start_slack: 0
+    end_slack: 0
+
+keio:
+    odomtopics: ["/odom"]
+    imtopics: ["/d455_rs1/color/image_raw/compressed"]
+    pcltopics: ["/velodyne_points"]
+    scantopics: []
+    trackingtopics: ["/tracks_d455_rs1_color_image_raw_compressed"]
+    masktopics: ['/masks_d455_rs1_color_image_raw_compressed']
+    speech_topic: "/cabot/event"
+    ang_offset: 0.0
+    process_pcl: True
+    process_scan: False
+    process_tracking: True
+    process_masks: False
+    img_process_func: "process_image"
+    odom_process_func: "nav_to_xy_yaw_vel" 
+    scan_process_func: ""
+    speech_process_func: "process_string_speech"
+    pcl_process_func: "process_pointcloud2_with_intensity"
+    tracking_process_func: "process_detection2d"
+    start_slack: 0
+    end_slack: 0
+uex:
+    odomtopics: ["/zed/zed_node/odom"]
+    imtopics: []
+    pcltopics: ["/rslidar_helios_points"]
+    scantopics: []
+    speech_topic: "/speech_command"
+    trackingtopics: ["/tracks_zed_zed_node_rgb_image_rect_color_compressed"]
+    masktopics: ["/masks_zed_zed_node_rgb_image_rect_color_compressed"]
+    ang_offset: 0.0
+    process_pcl: False
+    process_scan: False
+    process_tracking: True
+    process_masks: True
+    img_process_func: "process_image"
+    odom_process_func: "nav_to_xy_yaw_vel" 
+    scan_process_func: ""
+    speech_process_func: "process_string_speech"
+    pcl_process_func: "process_pointcloud2_with_intensity"
+    tracking_process_func: "process_detection2d"
+    start_slack: 1
+    end_slack: 1
+gmu: 
+  odomtopics: ["/odom"]
+  imtopics:  ["/zed2/zed_node/rgb/image_rect_color/compressed","/insta360_x4/image_raw/compressed"]
+  pcltopics: ["/velodyne_points"]
+  scantopics: []
+  trackingtopics: ["/tracks_insta360_x4_image_raw_compressed","tracks_zed2_zed_node_right_image_rect_color_compressed"]
+  img_info: ["/camera/rgb/camera_info"]
+  camera_intrinsics: []
+  tracking_process_func: "process_detection2d"
+  ang_offset: 0.0
+  process_feats: False
+  process_pcl: True
+  process_scan: False
+  process_tracking: True
+  process_masks: False
+  img_process_func: "process_image"
+  odom_process_func: "nav_to_xy_yaw_vel" 
+  scan_process_func: "ros_msg_to_json"
+  pcl_process_func: "process_velodyne"
+  scan_process_func: ""
+  speech_process_func: "process_string_speech"
+  start_slack: 1
+  end_slack: 1
+
+umich:
+    odomtopics: ["/odom"]
+    imtopics: ["/camera/color/image_raw/compressed"]
+    pcltopics: ["/velodyne_points"] 
+    scantopics: []
+    trackingtopics: ["/tracks_camera_color_image_raw_compressed"] 
+    masktopics: []
+    ang_offset: 0.0
+    process_pcl: True
+    process_scan: False
+    process_tracking: True
+    process_masks: False
+    img_process_func: "process_image"
+    odom_process_func: "nav_to_xy_yaw_vel" 
+    scan_process_func: ""
+    speech_process_func: "process_string_speech"
+    pcl_process_func: "process_pointcloud2_with_intensity"
+    tracking_process_func: "process_detection2d"
+    start_slack: 0
+    end_slack: 0
+
