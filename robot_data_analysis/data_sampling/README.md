@@ -11,7 +11,7 @@ This Docker container processes ROS2 bag files to extract synchronized image, od
 
 ### Build the Container
 
-* Remember to update docker-compose.yml Line#10 to point to the volume containing your
+* Remember to update docker-compose.yml Line#10 to point to the volume containing your ros bags
 
 ```bash
 docker-compose build
@@ -26,15 +26,15 @@ The `process_bags_config.yaml` file defines dataset-specific configurations. Eac
 - `odomtopics`: List of odometry topics (e.g., `["/odom"]`)
 - `imtopics`: List of image topics (e.g., `["/image_raw/compressed"]`)
 - `pcltopics`: List of point cloud topics (e.g., `["/velodyne_points"]`)
-- `scantopics`: List of laser scan topics (e.g., `["/scan"]`)
-- `trackingtopics`: List of tracking/detection topics
+- `scantopics`: You can leave this an empty list
+- `trackingtopics`: List of tracking topics
 - `masktopics`: List of mask topics (if applicable)
 - `speech_topic`: Speech topic for audio data
 - Processing flags:
-  - `process_pcl`: Enable/disable point cloud processing
-  - `process_scan`: Enable/disable laser scan processing
-  - `process_tracking`: Enable/disable tracking data processing
-  - `process_masks`: Enable/disable mask processing
+  - `process_pcl`: Enable/disable point cloud processing (Should be enabled)
+  - `process_scan`: Enable/disable laser scan processing (leave as False)
+  - `process_tracking`: Enable/disable tracking data processing (Should be enabled if there's a tracking topic available)
+  - `process_masks`: Enable/disable mask processing (Should be enabled if there's a mask topic available)
 - Processing functions for different data types
 - `start_slack` and `end_slack`: In order to cut off parts of the start or end of a bag, add in the number of timesteps to cut here. For example, a start slack of 10 means the first 10 timesteps * sample-rate (default 4Hz) = 2.5 seconds will be skipped (similarly for the end_slack)
 
@@ -45,7 +45,7 @@ scand_spot:
   odomtopics: ["/odom"]
   imtopics: ["/image_raw/compressed"]
   pcltopics: ["/velodyne_points"]
-  scantopics: ["/scan"]
+  scantopics: []
   trackingtopics: ["/tracks_image_raw_compressed"]
   process_pcl: true
   process_scan: false
@@ -61,7 +61,9 @@ scand_spot:
 
    ```yaml
    volumes:
-     - /path/to/your/rosbags:/ros2_bags:ro
+      # Edit the left path to the root of your ros2 bags. its okay if they are in sub folders, the script will recursively search for bags.
+     - /path/to/your/ros2bags:/ros2_bags:ro
+      # Edit left path to where the results should be stored.
      - ./processed:/processed
    ```
 2. **Start the container**:
@@ -72,7 +74,8 @@ scand_spot:
 3. **Execute the processing script**:
 
    ```bash
-   docker-compose exec data_sampling python3 process_bags_ros2.py [OPTIONS]
+   docker-compose exec data_sampling attach
+   python3 process_bags_ros2.py -d <dataset_name specified in process_bags_config.yaml>
    ```
 
 ### Direct Docker Run
@@ -83,7 +86,7 @@ docker run -it --rm \
   -v $(pwd)/processed:/processed \
   -v $(pwd):/workspace \
   data_sampling_data_sampling \
-  python3 process_bags_ros2.py [OPTIONS]
+  python3 process_bags_ros2.py -d <dataset_name specified in process_bags_config.yaml>
 ```
 
 ## Script Arguments
@@ -109,7 +112,7 @@ docker run -it --rm \
 ### Process all bags from scand_spot dataset
 
 ```bash
-python3 process_bags_ros2.py --dataset-name uex
+python3 process_bags_ros2.py --dataset-name scand_spot
 ```
 
 ### Process a specific bag file
@@ -158,21 +161,13 @@ processed/
 └── ...
 ```
 
-## Container Features
-
-- **ROS2 Humble**: Full desktop installation
-- **Navigation Stack**: Nav2 packages for robotics navigation
-- **Point Cloud Processing**: PCL and Open3D libraries
-- **Multi-format Support**: Handles various sensor data formats
-- **Python Libraries**: Scientific computing stack (NumPy, SciPy, OpenCV)
-
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Permission errors**: Ensure Docker has access to input/output directories
 2. **Memory issues**: Adjust `--num-workers` parameter for large datasets
-3. **Missing topics**: Check topic names in config file match bag file topics
+3. **Missing topics**: Check topic names in config file match bag file topics if you see output like "\<bag name> didn't have the topics, Skipping..."
 
 ### Debug Mode
 

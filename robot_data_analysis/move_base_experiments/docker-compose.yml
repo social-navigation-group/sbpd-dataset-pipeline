@@ -3,13 +3,14 @@ version: '3.8'
 services:
   move_base_experiments:
     build: .
-    container_name: move_base_experiments
+    #container_name: move_base_experiments
     volumes:
       # Mount rosbag directory (update this path to where your rosbags are stored)
-      # Change the left side to your actual rosbag directory path
-      - ./ros2_bags/:/rosbags:ro
+      - /data/ros2_bag_folder:/ros2_bags:ro
+      # This experiment generates ros1 bags which need to be saved as well.
+      - /data/ros1_bag_folder:/ros1_bags
       # Mount output directory for results
-      - ./output:/output
+      - /data/processed:/output      
       # Mount the current directory to sync with container
       - .:/catkin_ws
     environment:

@@ -38,7 +38,8 @@ BinaryMask = typestore.types['custom_msgs/msg/BinaryMask']
 
 def process_bag_file(bag_path,config):
     traj_name = bag_path.split("/")[-1].replace('.bag','')
-    root = traj_name.split("/")[-1]
+    #get the relative path of the bag file with respect to input_dir
+    root = os.path.relpath(os.path.dirname(bag_path), args.input_dir)
     traj_name_i = traj_name + f"_{0}"
     traj_folder_i = os.path.join(args.output_dir,root,traj_name_i)
     if os.path.exists(traj_folder_i) and args.contin:
