@@ -23,6 +23,7 @@ import math
 from rosbags.rosbag1 import Writer
 from rosbags.typesys import Stores, get_typestore
 from tqdm import tqdm
+
 def get_affine_mat(x, y, theta):
     """
     Returns the affine transformation matrix for the given parameters.
@@ -49,12 +50,12 @@ class ListenRecordData:
         self.recorded_joy_msgs = joy_msgs
         self.recorded_joy_time_stamps = joy_time_stamps
 
-        lidar = message_filters.Subscriber(lidar_topic, PointCloud2)
-        odom = message_filters.Subscriber(odom_topic, Odometry)
+        self.lidar_sub = message_filters.Subscriber(lidar_topic, PointCloud2)
+        self.odom_sub_sync = message_filters.Subscriber(odom_topic, Odometry)
         print('Subscribing to topics: ', odom_topic, ' and ', lidar_topic)
-        ts = message_filters.ApproximateTimeSynchronizer(
-            [lidar, odom], 100, 0.05, allow_headerless=False)
-        ts.registerCallback(self.callback)
+        self.ts = message_filters.ApproximateTimeSynchronizer(
+            [self.lidar_sub, self.odom_sub_sync], 100, 0.05, allow_headerless=False)
+        self.ts.registerCallback(self.callback)
 
         # read the config file
         self.config = yaml.safe_load(open(config_path, 'r'))
@@ -265,6 +266,24 @@ class ListenRecordData:
         self.odom_msgs[-1] = np.array([tmp.linear.x, tmp.linear.y, tmp.linear.z,
                                        tmp.angular.x, tmp.angular.y, tmp.angular.z])
 
+    def shutdown_subscribers(self):
+        """
+        Unregister all subscribers and wait for in-flight callbacks to complete
+        """
+        cprint('Shutting down subscribers...', 'yellow', attrs=['bold'])
+        self.lidar_sub.unregister()
+        self.odom_sub_sync.unregister()
+        self.path_sub.unregister()
+        self.cmd_vel_sub.unregister()
+        if hasattr(self, 'odom_sub'):
+            self.odom_sub.unregister()
+
+        # Wait for any in-flight callbacks to complete
+        # Use time.sleep() instead of rospy.sleep() because rosbag uses --clock
+        # and simulated time stops advancing when the bag finishes
+        time.sleep(1.0)
+        cprint('All subscribers shut down', 'green', attrs=['bold'])
+
     def save_data(self, rosbag_path, save_data_path):
         """
         save processed ros bag as a pkl file and directory of bev lidar images
@@ -421,6 +440,9 @@ if __name__ == '__main__':
         # check if the python process is still running
         if rosbag_play_process.wait() is not None:
             print('rosbag process has stopped')
+            # Shutdown subscribers and wait for callbacks to finish
+            datarecorder.shutdown_subscribers()
+            # Now save the data
             datarecorder.save_data(rosbag_path, save_data_path)
             print('Data was saved in :: ', save_data_path)
             exit(0)
