@@ -9,3 +9,7 @@
 logs/
 *.cmake
 */build/*
+robot_data_analysis/move_base_experiments/build/*
+robot_data_analysis/move_base_experiments/devel/*
+robot_data_analysis/test_sampling_docker/*
+robot_data_analysis/move_base_experiments/.catkin_workspace
