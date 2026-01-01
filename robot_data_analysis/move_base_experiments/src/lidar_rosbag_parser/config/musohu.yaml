@@ -1,4 +1,4 @@
-robot_name: "spot"
+robot_name: "musohu"
 
 ### lidar range configuration params ###
 LIDAR_RANGE_METERS: 10.0
@@ -17,16 +17,18 @@ kSitBtn: 0
 kStandBtn: 2
 
 ### base_local_planner_params.yaml
-max_vel_x: 1.6
-min_vel_x: 0.2
+max_vel_x: 1.1
+min_vel_x: -1.1
 max_vel_theta: 1.57
 min_in_place_vel_theta: 0.314
 
-acc_lim_theta: 20.0
-acc_lim_x: 20.0
+acc_lim_theta: 3.2
+acc_lim_x: 2.5
 acc_lim_y: 2.5
 
 holonomic_robot: false
 
 ### costmap_common_params.yaml
-footprint: [[-0.3, -0.2], [-0.3, 0.2], [0.3, 0.2], [0.3, -0.2]]
+# Go2 robot footprint (approximate dimensions for Unitree Go2)
+footprint: [[-0.35, -0.165], [-0.35, 0.165], [0.35, 0.165], [0.35, -0.165]]
+

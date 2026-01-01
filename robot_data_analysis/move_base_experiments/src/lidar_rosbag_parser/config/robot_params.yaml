@@ -1,0 +1,77 @@
+- scand-spot
+  - lidar_topic: /velodyne_points
+  - odom_topic: /odom
+  - lidar_frame: velodyne
+  - footprint: 
+  - min_height:
+  - max_height:
+- scand-jackal
+  - lidar_topic: /velodyne_points
+  - odom_topic: /jackal_velocity_controller/odom
+  - lidar_frame: velodyne
+  - footprint: 
+  - min_height:
+  - max_height:
+- musohu
+  - lidar_topic: /velodyne_points
+  - odom_topic: /zed2/zed_node/odom
+  - lidar_frame: lidar_link
+  - footprint:
+  - min_height:
+  - max_height:
+- go2nus
+  - lidar_topic: /rslidar_points
+  - odom_topic: /utlidar/robot_odom
+  - lidar_frame: rslidar
+  - footprint: 
+  - min_height: 0.0
+  - max_height: 0.1
+- miraikan
+  - lidar_topic:
+  - odom_topic:
+  - lidar_frame:
+  - footprint:
+  - min_height:
+  - max_height:
+- keio
+  - lidar_topic:
+  - odom_topic:
+  - lidar_frame:
+  - footprint:
+  - min_height:
+  - max_height:
+- cmu
+  - lidar_topic: /velodyne_points
+  - odom_topic: /cabot/odometry/filtered
+  - lidar_frame: velodyne
+  - footprint: 
+  - min_height:
+  - max_height:
+- uex
+  - lidar_topic: /rslidar_helios_points
+  - odom_topic: /odom_icp
+  - lidar_frame: helios
+  - footprint
+  - min_height:
+  - max_height:
+- ubonn
+  - lidar_topic: /velodyne_points
+  - odom_topic: /go1_controller/odom
+  - lidar_frame: velodyne
+  - footprint: 
+  - min_height:
+  - max_height:
+- gmu
+  - lidar_topic: /velodyne_points
+  - odom_topic: /odom
+  - lidar_frame: velodyne
+  - footprint: 
+  - min_height:
+  - max_height:
+- umich
+  - lidar_topic: /velodyne_points
+  - odom_topic: /odom
+  - lidar_frame: velodyne
+  - footprint: 
+  - min_height:
+  - max_height:

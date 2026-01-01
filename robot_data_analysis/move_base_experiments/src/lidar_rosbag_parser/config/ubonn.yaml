@@ -1,4 +1,4 @@
-robot_name: "spot"
+robot_name: "ubonn"
 
 ### lidar range configuration params ###
 LIDAR_RANGE_METERS: 10.0

@@ -53,6 +53,7 @@ class ListenRecordData:
         self.lidar_sub = message_filters.Subscriber(lidar_topic, PointCloud2)
         self.odom_sub_sync = message_filters.Subscriber(odom_topic, Odometry)
         print('Subscribing to topics: ', odom_topic, ' and ', lidar_topic)
+        
         self.ts = message_filters.ApproximateTimeSynchronizer(
             [self.lidar_sub, self.odom_sub_sync], 100, 0.05, allow_headerless=False)
         self.ts.registerCallback(self.callback)
@@ -113,6 +114,9 @@ class ListenRecordData:
         # setup tf2 publisher
         self.tf2_pub = tf2_ros.TransformBroadcaster()
 
+    def lidar_callback(self, lidar_msg):
+        print("###LIDAR CALLBACK")
+    
     def callback(self, lidar, odom):
         """[callback function for the approximate time synchronizer]
 
@@ -120,6 +124,7 @@ class ListenRecordData:
             lidar ([type]): [lidar ROS message]
             odom ([type]): [odometry ROS message]
         """
+        print("###CALLBACK")
         # get the time of the current message in seconds
         if self.start_time is None:
             self.start_time = lidar.header.stamp.to_sec()
@@ -214,6 +219,8 @@ class ListenRecordData:
             bev_lidar_image = cv2.cvtColor(bev_lidar_image, cv2.COLOR_GRAY2BGR)
             T_odom_robot = get_affine_matrix_quat(
                 self.data['odom'][-1][0], self.data['odom'][-1][1], self.data['odom'][-1][2])
+
+            # Visualize human expert path in red
             for goal in self.data['human_expert_odom'][-1][:200]:
                 T_odom_goal = get_affine_matrix_quat(goal[0], goal[1], goal[2])
                 T_robot_goal = np.matmul(
@@ -223,6 +230,18 @@ class ListenRecordData:
                               int(-T_c_f[1] / 0.05) + 200]
                 bev_lidar_image = cv2.circle(
                     bev_lidar_image, (t_f_pixels[0], t_f_pixels[1]), 1, (0, 0, 255), -1)
+
+            # Visualize move_base path in blue
+            if self.data['move_base_path'][-1] is not None:
+                for goal in self.data['move_base_path'][-1][:200]:
+                    T_odom_goal = get_affine_matrix_quat(goal[0], goal[1], goal[2])
+                    T_robot_goal = np.matmul(
+                        np.linalg.pinv(T_odom_robot), T_odom_goal)
+                    T_c_f = [T_robot_goal[0, 2], T_robot_goal[1, 2]]
+                    t_f_pixels = [int(T_c_f[0] / 0.05) + 200,
+                                  int(-T_c_f[1] / 0.05) + 200]
+                    bev_lidar_image = cv2.circle(
+                        bev_lidar_image, (t_f_pixels[0], t_f_pixels[1]), 1, (255, 0, 0), -1)
 
             cv2.imshow('bev_lidar', bev_lidar_image)
             cv2.waitKey(1)
@@ -261,10 +280,11 @@ class ListenRecordData:
         return tmp
 
     def odom_callback(self, odom):
-        self.odom_msgs = np.roll(self.odom_msgs, -1, axis=0)
-        tmp = odom.twist.twist
-        self.odom_msgs[-1] = np.array([tmp.linear.x, tmp.linear.y, tmp.linear.z,
-                                       tmp.angular.x, tmp.angular.y, tmp.angular.z])
+        print("###ODOM CALLBACK")
+        # self.odom_msgs = np.roll(self.odom_msgs, -1, axis=0)
+        # tmp = odom.twist.twist
+        # self.odom_msgs[-1] = np.array([tmp.linear.x, tmp.linear.y, tmp.linear.z,
+        #                                tmp.angular.x, tmp.angular.y, tmp.angular.z])
 
     def shutdown_subscribers(self):
         """

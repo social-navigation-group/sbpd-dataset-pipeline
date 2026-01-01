@@ -1,21 +1,26 @@
 <?xml version="1.0"?>
 
 <launch>
+    <arg name="lidar_topic" default="" />
+    <arg name="target_frame" default="" />
     <!-- run laserscan_to_pointcloud node -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="laserscan_to_pointcloud">
-
-        <remap from="cloud_in" to="/rslidar_points"/>
+        
+        <remap from="cloud_in" to="$(arg lidar_topic)"/>
+        <!-- <param name="target_frame" value="$(arg target_frame)"/> -->
         <!-- <remap from="cloud" to="$(arg scanner)/cloud"/> -->
         <rosparam>
-            target_frame: rslidar # Leave disabled to output pointcloud in scan frame
+            # target_frame: lidar_link # Leave disabled to output pointcloud in scan frame
             transform_tolerance: 0.01
-            
+            # min_height: 0.0
+            # max_height: 1.0
             # Concurrency level, affects number of pointclouds queued for processing and number of threads used
             # 0 : Detect number of cores
             # 1 : Single threaded
             # 2->inf : Parallelism level
             concurrency_level: 0
         </rosparam>
+        <param name="target_frame" value="$(arg target_frame)"/>
 
     </node>
 

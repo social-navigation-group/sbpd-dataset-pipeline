@@ -1,15 +1,14 @@
-robot_name: "spot"
+robot_name: "miraikan"
 
 ### lidar range configuration params ###
 LIDAR_RANGE_METERS: 10.0
 LIDAR_HEIGHT_METERS: 5.0
 RESOLUTION: 0.05
 
-### Spot robot configuration ###
+### Robot configuration ###
 kMaxLinearSpeed: 1.6 #m/s
 
 ### Joystick configuration for the rosbag ###
-### USING THE DualShock 4 Joystick ###
 kXAxis: 4
 kYAxis: 3
 kRAxis: 0
@@ -23,10 +22,11 @@ max_vel_theta: 1.57
 min_in_place_vel_theta: 0.314
 
 acc_lim_theta: 20.0
-acc_lim_x: 20.0
+acc_lim_x: 2.5
 acc_lim_y: 2.5
 
 holonomic_robot: false
 
 ### costmap_common_params.yaml
+# Robot footprint - adjust based on actual robot dimensions
 footprint: [[-0.3, -0.2], [-0.3, 0.2], [0.3, 0.2], [0.3, -0.2]]
