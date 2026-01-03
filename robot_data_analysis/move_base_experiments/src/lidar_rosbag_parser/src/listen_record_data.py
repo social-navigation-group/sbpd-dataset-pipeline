@@ -74,20 +74,6 @@ class ListenRecordData:
         # bev_lidar_images to be written to disk
         self.lidar_imgs = {}
 
-        if self.config['robot_name'] == "spot":
-            cprint('Processing rosbag collected on the SPOT',
-                   'green', attrs=['bold'])
-            self.data['odom_history'] = []
-
-            # setup subsciber for odom
-            self.odom_msgs = np.zeros((100, 6), dtype=np.float32)
-            self.odom_sub = rospy.Subscriber(
-                odom_topic, Odometry, self.odom_callback, queue_size=1)
-
-        elif self.config['robot_name'] == "jackal":
-            cprint('Processing rosbag collected on the JACKAL',
-                   'green', attrs=['bold'])
-
         # handle lidar data
         self.bevlidar_handler = BEVLidar(x_range=(-self.config['LIDAR_RANGE_METERS'], self.config['LIDAR_RANGE_METERS']),
                                          y_range=(-self.config['LIDAR_RANGE_METERS'],
@@ -183,9 +169,6 @@ class ListenRecordData:
         # save BEVLidar images to disk instead of pkl file
         self.lidar_imgs[self.n] = bev_lidar_image
 
-        # # if using spot, then also record the past 1 sec odom data in self.data
-        if self.config['robot_name'] == "spot":
-            self.data['odom_history'].append(self.odom_msgs.flatten())
 
         # save the move_base_path
         if self.move_base_path is not None and (self.move_base_path_time - current_time) < 0.5:
@@ -193,6 +176,7 @@ class ListenRecordData:
             self.data['move_base_path'].append(move_base_path)
         else:
             cprint("move base path not available", "red", attrs=["bold"])
+            cprint(self.move_base_path is None,"red")
             self.data['move_base_path'].append(None)
 
         # save the human expert path
@@ -278,13 +262,6 @@ class ListenRecordData:
                         [odom.pose.pose.orientation.x, odom.pose.pose.orientation.y,
                          odom.pose.pose.orientation.z, odom.pose.pose.orientation.w]])
         return tmp
-
-    def odom_callback(self, odom):
-        print("###ODOM CALLBACK")
-        # self.odom_msgs = np.roll(self.odom_msgs, -1, axis=0)
-        # tmp = odom.twist.twist
-        # self.odom_msgs[-1] = np.array([tmp.linear.x, tmp.linear.y, tmp.linear.z,
-        #                                tmp.angular.x, tmp.angular.y, tmp.angular.z])
 
     def shutdown_subscribers(self):
         """

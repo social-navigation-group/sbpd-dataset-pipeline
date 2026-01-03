@@ -3,8 +3,8 @@
   - odom_topic: /odom
   - lidar_frame: velodyne
   - footprint: 
-  - min_height:
-  - max_height:
+  - min_height: 0.0
+  - max_height: 1.0
 - scand-jackal
   - lidar_topic: /velodyne_points
   - odom_topic: /jackal_velocity_controller/odom
@@ -12,20 +12,22 @@
   - footprint: 
   - min_height:
   - max_height:
-- musohu
+- musohu 
   - lidar_topic: /velodyne_points
   - odom_topic: /zed2/zed_node/odom
   - lidar_frame: lidar_link
-  - footprint:
-  - min_height:
-  - max_height:
-- go2nus
-  - lidar_topic: /rslidar_points
-  - odom_topic: /utlidar/robot_odom
-  - lidar_frame: rslidar
-  - footprint: 
-  - min_height: 0.0
+  - footprint: [[-0.325, -0.325], [-0.325, 0.325], [0.325, 0.325], [0.46, 0.0], [0.325, -0.325]]
+  - min_height: -0.1
   - max_height: 0.1
+  - problems
+      - 08112023_WW_GMU_2_neutral_merged.bag
+# - go2nus
+#   - lidar_topic: /rslidar_points
+#   - odom_topic: /utlidar/robot_odom
+#   - lidar_frame: rslidar
+#   - footprint: 
+#   - min_height: 0.0
+#   - max_height: 0.1
 - miraikan
   - lidar_topic:
   - odom_topic:
@@ -51,27 +53,27 @@
   - lidar_topic: /rslidar_helios_points
   - odom_topic: /odom_icp
   - lidar_frame: helios
-  - footprint
+  - footprint: [[-0.325, -0.325], [-0.325, 0.325], [0.325, 0.325], [0.46, 0.0], [0.325, -0.325]]
   - min_height:
   - max_height:
 - ubonn
   - lidar_topic: /velodyne_points
   - odom_topic: /go1_controller/odom
   - lidar_frame: velodyne
-  - footprint: 
+  - footprint: [[0.48, 0.38], [0.48, -0.38], [-0.48, -0.38], [ -0.48, 0.38 ]]
   - min_height:
   - max_height:
 - gmu
   - lidar_topic: /velodyne_points
   - odom_topic: /odom
   - lidar_frame: velodyne
-  - footprint: 
-  - min_height:
+  - footprint: [[0.3075, 0.290], [-0.3075, 0.290], [0.3075, -0.290], [-0.3075, -0.290]]
+  - min_height: 
   - max_height:
 - umich
   - lidar_topic: /velodyne_points
   - odom_topic: /odom
   - lidar_frame: velodyne
-  - footprint: 
+  - footprint: [[0.05,0.175],[-0.30,0.175],[-0.30,-0.175],[0.05,-0.175]]
   - min_height:
   - max_height:

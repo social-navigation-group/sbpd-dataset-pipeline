@@ -48,8 +48,8 @@ if __name__ == '__main__':
 
     # open the pickle file
     # data = pickle.load(open('data/2021-11-13-17-09-18_data.pkl', 'rb'), encoding='latin1')
-    bp = '/media/dataset_access/cmu_test_move_base/processed/'
-    traj = 'deck_5_with_overhead_2025-03-26_12-59-49_1_corrected_merged'
+    bp = '/media/dataset_access/move_base_experiment_results/move_base_saves_const_distance_5_go2nus'
+    traj = 'deck_1_without_overhead_2025-03-26_12-05-52_2_corrected_merged'
     # file_paths = glob.glob(os.path.join(bp,traj))
     file_paths = [os.path.join(bp,traj+'_data.pkl')]
     for file_path in file_paths:
@@ -141,7 +141,7 @@ if __name__ == '__main__':
                 print('actual points in blue line : ', len(data['move_base_path'][i]))
                 print('filtered points in blue line : ', len(local_goal_list))
 
-
+ 
 
             # # mask img with mask_img
             # img = cv2.bitwise_and(img, img, mask=mask_img)

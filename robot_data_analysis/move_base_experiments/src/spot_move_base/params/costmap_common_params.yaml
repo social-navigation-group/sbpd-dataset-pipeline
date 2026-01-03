@@ -9,15 +9,7 @@ raytrace_range: 12.5
 publish_voxel_map: false
 transform_tolerance: 0.5
 meter_scoring: true
-footprint:
-- - -0.35
-  - -0.165
-- - -0.35
-  - 0.165
-- - 0.35
-  - 0.165
-- - 0.35
-  - -0.165
+footprint: [[0.05,0.175],[-0.30,0.175],[-0.30,-0.175],[0.05,-0.175]]
 footprint_padding: 0.1
 plugins:
 - name: obstacles_layer
