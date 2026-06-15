@@ -7,7 +7,7 @@ services:
     volumes:
       # Mount rosbag directory (update this path to where your rosbags are stored)
       # Change the left side to your actual rosbag directory path
-      - ./ros2_bags/:/rosbags:ro
+      - /data2/dataset-cmu/ros-bag-split:/rosbags:ro
       # Mount output directory for results
       - ./output:/output
       # Mount the current directory to sync with container
