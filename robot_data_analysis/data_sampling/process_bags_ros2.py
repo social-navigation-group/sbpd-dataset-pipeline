@@ -13,7 +13,7 @@ from process_data_utils import get_images_pcl_and_odom
 import numpy as np
 from pprint import pprint
 from rosbag2_py import SequentialReader, StorageOptions, ConverterOptions, StorageFilter
-from rosbags.typesys import get_types_from_msg,register_types,get_typestore,Stores
+from rosbags.typesys import get_types_from_msg,get_typestore,Stores
 from ros2_utils import get_synced_raw_messages_from_bag
 from nav_msgs.msg import Odometry
 from vision_msgs.msg import Detection2DArray

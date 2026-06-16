@@ -7,9 +7,9 @@ services:
     volumes:
       # Mount rosbag directory (update this path to the root of where your ros2 bags are stored)
       # Change the left side to your actual rosbag directory path
-      - /mnt/uex:/ros2_bags:ro
+      - /data2/SBPD-dataset/SBPD/Bag/dataset-bag-miraikan-fixed:/ros2_bags:ro
       # Mount output directory for results
-      - /mnt/processed/uex:/processed
+      - /data2/SBPD-dataset/SBPD/Bag_processed/miraikan_fix_zipped:/processed
       - .:/workspace
       # Mount the current directory to sync with container
     network_mode: host

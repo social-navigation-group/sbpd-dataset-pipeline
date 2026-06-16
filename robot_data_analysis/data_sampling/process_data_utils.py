@@ -10,7 +10,7 @@ import ros2_numpy
 #from pypcd import pypcd
 from IPython import embed
 import velodyne_decoder as vd
-from rosbags.typesys import get_types_from_msg,register_types,get_typestore,Stores
+from rosbags.typesys import get_types_from_msg,get_typestore,Stores
 
 BINARY_MASK_MSG = """
 std_msgs/Header header
