@@ -205,10 +205,10 @@ def main(args):
             object_id = track_ids[box_index]
 
             x1, y1, x2, y2 = int(top_left_x), int(top_left_y), int(top_left_x + width), int(top_left_y + height)
-            x1 = max(0, x1)
-            y1 = max(0, y1)
-            x2 = min(new_width - 1, x2)
-            y2 = min(new_height - 1, y2)
+            #x1 = max(0, x1)
+            #y1 = max(0, y1)
+            #x2 = min(new_width - 1, x2)
+            #y2 = min(new_height - 1, y2)
             if not ((x1 < x2) and (y1 < y2)):
                 continue
 
@@ -217,6 +217,10 @@ def main(args):
                 new_y2 = y1 + max((y2 - y1) * args.blur_pct, args.blur_min)
                 new_y2 = min(new_height - 1, new_y2)
                 x1, y1, x2, new_y2 = map(int, [x1, y1, x2, new_y2])
+                x1 = max(0, x1)
+                y1 = max(0, y1)
+                x2 = min(new_width - 1, x2)
+                new_y2 = min(new_height - 1, new_y2)
                 if (y1 < new_y2):
                     if args.blur_black:
                         save_frame[y1:new_y2, x1:x2, :] = 0
