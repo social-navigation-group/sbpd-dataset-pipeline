@@ -1,18 +1,15 @@
 import os
 import argparse
 import subprocess
+import sys
+
+from cli_args import add_anonymize_arguments
 
 def main():
     parser = argparse.ArgumentParser(description = "Run anonymize script on multiple videos.")
     parser.add_argument("--video-folder", default = "./videos", type=str, help = "Folder containing video files.")
     parser.add_argument("--anonymize-script", default = "./anonymize_and_track.py", type = str, help = "Path to anonymize script.")
-
-    # Forwarded arguments
-    parser.add_argument("--no-blur", action = "store_true")
-    parser.add_argument("--no-track", action = "store_true")
-    parser.add_argument("--blur-all", action = "store_true")
-    parser.add_argument("--blur-black", action = "store_true")
-    parser.add_argument("--restrict-area", action = "store_true")
+    add_anonymize_arguments(parser, include_video = False)
 
     args = parser.parse_args()
 
@@ -23,8 +20,23 @@ def main():
         print(f"\nProcessing video: {video}")
 
         cmd = [
-            "python", args.anonymize_script,
+            sys.executable, args.anonymize_script,
             "--video", video_path,
+            "--model", args.model,
+            "--experiment-config", args.experiment_config,
+            "--output", args.output,
+            "--trajectory-output", args.trajectory_output,
+            "--area-path", args.area_path,
+            "--shallow-size", str(args.shallow_size),
+            "--blur-size", str(args.blur_size),
+            "--blur-pct", str(args.blur_pct),
+            "--blur-min", str(args.blur_min),
+            "--scale", str(args.scale),
+            "--smooth-len", str(args.smooth_len),
+            "--boundary-width", str(args.boundary_width),
+            "--min-length", str(args.min_length),
+            "--traj-fps", str(args.traj_fps),
+            "--debug-frames", str(args.debug_frames),
         ]
 
         # Pass along arguments explicitly
@@ -38,6 +50,10 @@ def main():
             cmd.append("--restrict-area")
         if args.no_track:
             cmd.append("--no-track")
+        if args.persist:
+            cmd.append("--persist")
+        if args.debug:
+            cmd.append("--debug")
 
         subprocess.run(cmd, check=True)
         print(f"Finished video: {video}")

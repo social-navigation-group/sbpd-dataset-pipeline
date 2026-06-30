@@ -9,41 +9,11 @@ import numpy as np
 from byte_track_wrapper import ByteTrackWrapper
 
 from define_area import select_area
+from cli_args import add_anonymize_arguments
 
 def get_args():
     parser = argparse.ArgumentParser(description="Anonymize a video using ByteTrack")
-    # Paths
-    parser.add_argument("--model", default = "../../ByteTrack/pretrained/bytetrack_x_mot17.pth.tar", type = str, help = "Path to the YOLOX model")
-    parser.add_argument("--experiment-config", default = "../../ByteTrack/exps/example/mot/yolox_x_mix_det.py", type = str, help = "ByteTrack experiment config file")
-    parser.add_argument("--video", required = True, type = str, help = "Path to the folder that contains video files") # default="./videos"
-    parser.add_argument("--output", default="./videos_anonymized", type = str, help = "Path to the folder that contains anonymized video files")
-    parser.add_argument("--trajectory-output", default = "./trajectories", type = str, help = "Path to save the automated trajectories")
-    parser.add_argument("--area-path", default = "./areas", type = str, help = "Path to the area files")
-
-    # Anonymization options
-    parser.add_argument("--no-blur", action = "store_true", help = "Do not anonymize the video (highest priority argument)")
-    parser.add_argument("--blur-all", action = "store_true", help = "Blur entire video frames")
-    parser.add_argument("--blur-black", action = "store_true", help = "Paint everything black")
-    parser.add_argument("--shallow-size", default = 21, type = int, help = "Size of the shallow blur kernel for full frame anonymization")
-    parser.add_argument("--blur-size", default = 41, type = int, help = "Size of the blur kernel")
-    parser.add_argument("--blur-pct", default = 0.5, type = float, help = "Percentage of the bounding box to blur")
-    parser.add_argument("--blur-min", default = 25, type = int, help = "Minimum pixels of the bounding box to blur")
-
-    # Tracking parameters
-    parser.add_argument("--no-track", action = "store_true", help = "Do not track objects")
-    parser.add_argument("--restrict-area", action = "store_true", help = "Restrict tracking to a specific area")
-    parser.add_argument("--scale", default = 0.5, type = float, help = "Scale factor for display")
-    parser.add_argument("--persist", action = "store_true", help = "Persist tracking")
-    # parser.add_argument("--iou", default = 0.7, type = float, help = "IoU threshold for tracking")
-    # parser.add_argument("--tracker", default = "bytetrack.yaml", type = str, help = "Tracker configuration file") # No need to download this yaml
-    parser.add_argument("--smooth-len", default = 7, type = int, help = "Length of the smoothing window")
-    # If the pedestrians feet cannot be seen, their trajectories will still be recorded at the bottom of the screen.
-    # This parameter allows to ignore these trajectories.
-    parser.add_argument("--boundary-width", default = 10, type = int, help = "Ignore trajectories within boundary width of the bottom of the frame")
-    parser.add_argument("--min-length", default = 30, type = int, help = "Minimum length of a trajectory to be recorded")
-
-    # Trajectory options
-    parser.add_argument("--traj-fps", default = 10, type = int, help = "Fps of the trajectories")
+    add_anonymize_arguments(parser)
 
     args = parser.parse_args()
     if not os.path.exists(args.model):
@@ -89,6 +59,9 @@ def get_args():
     if args.min_length < 0:
         print("ERROR: The minimum trajectory length must be non-negative.")
         exit(1)
+    if args.debug_frames <= 0:
+        print("ERROR: The debug frame count must be positive.")
+        exit(1)
     return args
 
 def main(args):
@@ -126,6 +99,8 @@ def main(args):
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(round(cap.get(cv2.CAP_PROP_FPS)))
     num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if args.debug:
+        num_frames = min(num_frames, args.debug_frames)
 
     # Downscale video
     max_width = 1920
@@ -259,6 +234,9 @@ def main(args):
             trajectory_video.write(save_frame)
         if (not args.no_blur):
             output.write(save_frame)
+
+        if args.debug and frame_id >= args.debug_frames:
+            break
 
     if not args.no_track:
         # filter short trajectories
