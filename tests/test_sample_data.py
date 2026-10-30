@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from acme_dataset import find_trajectory_dirs, Trajectory
+from acme_dataset.constants import RAW_BAGS_DIR
 from acme_dataset.rosbag import find_bags, metadata_summary
 
 ROOT = os.environ.get("ACME_ROOT")
@@ -43,6 +44,9 @@ def test_human_readable_consistency():
 
 
 def test_raw_bag_metadata():
-    for bag in find_bags(Path(ROOT) / "ros2 bags")[:5]:
+    bags_dir = Path(ROOT) / RAW_BAGS_DIR
+    if not bags_dir.is_dir():
+        pytest.skip(f"no {RAW_BAGS_DIR}/ folder")
+    for bag in find_bags(bags_dir)[:5]:
         duration, topics = metadata_summary(bag)
         assert duration > 0 and len(topics) > 0

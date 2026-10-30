@@ -1,13 +1,18 @@
-"""Scenario tags of the robot trajectories (``dataset_tags.xlsx``).
+"""Scenario tags of the robot trajectories (``acme_tags.xlsx``).
 
 The spreadsheet has one sheet per institution with the columns
 ``trajectory_name, dataset_name, tags`` (plus free-text notes for some
 institutions). ``tags`` holds location tags (e.g. ``narrow_corridors``,
 ``intersections``) and pedestrian tags (e.g. ``against_traffic``,
 ``conversational_groups``).
+
+Trajectory names in the spreadsheet do not always match the bag / sampled
+file names exactly (suffixes such as ``_merged``, ``_filtered`` or ``_0``
+differ); :func:`trajectory_key` normalizes both sides.
 """
 
 import ast
+import re
 from pathlib import Path
 from typing import Iterable, List, Optional, Union
 
@@ -29,7 +34,7 @@ def _parse_tags(value) -> List[str]:
 
 
 def load_scenario_tags(path: PathLike) -> pd.DataFrame:
-    """Load the tag table from ``dataset_tags.xlsx`` (all sheets) or a CSV export.
+    """Load the tag table from ``acme_tags.xlsx`` (all sheets) or a CSV export.
 
     Returns a DataFrame with columns ``institution, trajectory_name, tags``
     (``tags`` is a list of strings) followed by any extra note columns.
@@ -80,11 +85,31 @@ def filter_by_tags(
     return tags[keep]
 
 
+def trajectory_key(name: str) -> str:
+    """Normalized trajectory name shared by tag rows, bag names and sampled folder names.
+
+    Drops the ``_0`` suffix of sampled folders and processing suffixes such as
+    ``_merged``, ``_merged_lio``, ``_merged_0_trimmed_lio`` and ``_filtered``,
+    rewrites the UMich tag style ``<x>_mer_<x>_mer_<n>`` to ``<x>_merged_<n>``,
+    and drops the ``_0_1`` recording infix of Keio bags (``<x>_0_1_<n>`` is tagged as ``<x>_<n>``).
+    """
+    match = re.match(r"^(.+)_mer_\1_mer_(\d+)$", name)
+    if match:
+        name = f"{match.group(1)}_merged_{match.group(2)}"
+    name = re.sub(r"_0$", "", name)
+    name = re.sub(r"_merged(_0)?(_trimmed)?(_lio)?$", "", name)
+    name = re.sub(r"_(filtered|corrected_merged|merged_corrected)$", "", name)
+    if "-Keio_" in name:
+        name = re.sub(r"_0_1_(\d+)$", r"_\1", name)
+    return name
+
+
 def tags_for(tags: pd.DataFrame, trajectory_name: str) -> List[str]:
-    """Tags of one trajectory. Accepts bag names and human-readable folder names
-    (which carry an extra ``_0`` suffix)."""
-    names = {trajectory_name, f"{trajectory_name}_0"}
-    if trajectory_name.endswith("_0"):
-        names.add(trajectory_name[:-2])
-    match = tags[tags["trajectory_name"].isin(names)]
+    """Tags of one trajectory, given a tag-sheet name, bag name or sampled folder name.
+    Returns an empty list if no row matches."""
+    exact = tags[tags["trajectory_name"] == trajectory_name]
+    if len(exact):
+        return list(exact.iloc[0]["tags"])
+    key = trajectory_key(trajectory_name)
+    match = tags[tags["trajectory_name"].map(trajectory_key) == key]
     return list(match.iloc[0]["tags"]) if len(match) else []

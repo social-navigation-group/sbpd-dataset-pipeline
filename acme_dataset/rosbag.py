@@ -7,7 +7,7 @@ automatically.
 
 Example:
     >>> from acme_dataset.rosbag import Bag, decode_odometry
-    >>> with Bag("ACME-dataset/ros2 bags/miraikan/<bag>.zip") as bag:
+    >>> with Bag("ACME-dataset/ROS2_Bags/miraikan/<bag>.zip") as bag:
     ...     print(bag.topics)
     ...     for topic, t_ns, msg in bag.messages(["/odom"]):
     ...         print(t_ns, decode_odometry(msg))

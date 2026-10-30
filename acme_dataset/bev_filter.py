@@ -23,7 +23,7 @@ DEFAULT_TARGET_FPS = 2.5               # output rate of filter_and_downsample
 DEFAULT_VELOCITY_JUMP_THRESHOLD = 5.0  # jumps above 2x this speed are interpolated (m/s)
 DEFAULT_SMOOTHING_WINDOW = 5           # moving-average window (frames), 0 disables
 DEFAULT_STATIONARY_WINDOW = 8          # stationary-detection window (frames)
-DEFAULT_COORDINATE_BOUNDS = None       # e.g. (-25, 25) metres for x and y
+DEFAULT_COORDINATE_BOUNDS = (-25, 25)  # metres for x and y; None disables the check
 
 
 def path_length(points: np.ndarray) -> float:

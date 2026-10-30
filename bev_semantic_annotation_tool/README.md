@@ -15,7 +15,7 @@ pip install pillow openpyxl
 The tool expects `frames/` (one BEV image per session) and `BEV Tags.xlsx` (the tags
 to draw per session) next to `tag_annotator.py`. These inputs are not part of this
 repository; the annotations and masks produced with the tool are released with the
-dataset under `bev/bev_annotations/`. Use `acme_dataset.bev` (see
+dataset under `BEV/BEV_annotations/`. Use `acme_dataset.bev` (see
 `notebooks/03_bev_trajectories.ipynb`) to read them.
 
 ## Usage

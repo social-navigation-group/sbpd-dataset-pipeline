@@ -122,7 +122,8 @@ def _cmd_bev_export(args) -> None:
         sessions = sessions[sessions["dataset"].isin(args.dataset)]
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    kwargs = {} if args.bounds is None else {"coordinate_bounds": tuple(args.bounds)}
+    kwargs = {"coordinate_bounds": None} if args.no_bounds else {} if args.bounds is None \
+        else {"coordinate_bounds": tuple(args.bounds)}
     for dataset, session_id in zip(sessions["dataset"], sessions["session"]):
         try:
             session = BEVSession(index, dataset, session_id)
@@ -156,10 +157,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("download", help="download (part of) the dataset from Hugging Face")
     p.add_argument("component", choices=sorted(COMPONENTS))
-    p.add_argument("--institution", "-i", help="e.g. go2nus, miraikan, cmu, keio, umich, uex, gmu, ubonn")
+    p.add_argument("--institution", "-i", help="e.g. cmu, gmu, keio, miraikan, uex, umich")
     p.add_argument("--names", "-n", nargs="+", help="specific bags / trajectories / BEV datasets")
     p.add_argument("--local-dir", "-o", default="ACME-dataset")
-    p.add_argument("--extract", action="store_true", help="unzip downloaded archives (raw bags)")
+    p.add_argument("--extract", action=argparse.BooleanOptionalAction, default=None,
+                   help="unzip downloaded archives (default: only for human_readable)")
     p.add_argument("--revision")
     p.add_argument("--workers", type=int, default=8)
     p.set_defaults(func=_cmd_download)
@@ -169,7 +171,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=_cmd_info)
 
     p = sub.add_parser("stats", help="per-trajectory statistics of the human-readable data")
-    p.add_argument("root", help="dataset root, human_readable_sampled/, institution or trajectory folder")
+    p.add_argument("root", help="dataset root, sampled_data/, institution or trajectory folder")
     p.add_argument("--institution", "-i")
     p.add_argument("--out", help="write per-trajectory statistics to this CSV")
     p.add_argument("--masks", action="store_true", help="also compute person pixel coverage (slow)")
@@ -181,20 +183,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", "-o", required=True, help="output folder (one sub-folder per bag)")
     p.add_argument("--institution", "-i", help="topic configuration to use (guessed from the path if omitted)")
     p.add_argument("--rate", type=float, default=HUMAN_READABLE_RATE_HZ, help="sampling rate in Hz (default: 4)")
-    p.add_argument("--pcd-format", choices=["npz", "pcd", "both"], default="both")
+    p.add_argument("--pcd-format", choices=["npz", "pcd", "both"], default="pcd")
     p.add_argument("--bbox-encoding", choices=["auto", "center", "legacy"], default="auto")
     p.add_argument("--overwrite", action="store_true")
     p.add_argument("--workers", type=int, default=1)
     p.set_defaults(func=_cmd_convert)
 
     p = sub.add_parser("bev-export", help="export BEV pedestrian trajectories in metres to CSV")
-    p.add_argument("root", help="dataset root, bev/ or bev_annotations/")
+    p.add_argument("root", help="dataset root, BEV/ or BEV/BEV_annotations/")
     p.add_argument("--out", "-o", required=True)
     p.add_argument("--dataset", "-d", nargs="+", help="only these BEV datasets (e.g. bonn nus cmu)")
     p.add_argument("--raw", action="store_true", help="no filtering (all annotated points)")
     p.add_argument("--target-fps", type=float, help="downsample like transform_trajectories.py (e.g. 2.5)")
     p.add_argument("--bounds", type=float, nargs=2, metavar=("MIN", "MAX"),
-                   help="label points outside [MIN, MAX] metres as out_of_bounds")
+                   help="label points outside [MIN, MAX] metres as out_of_bounds (default: -25 25)")
+    p.add_argument("--no-bounds", action="store_true", help="disable the out_of_bounds labelling")
     p.add_argument("--tags", action="store_true", help="split into per-semantic-tag segments")
     p.set_defaults(func=_cmd_bev_export)
     return parser

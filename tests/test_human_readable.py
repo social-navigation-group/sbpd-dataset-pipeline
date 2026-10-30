@@ -8,7 +8,7 @@ from acme_dataset.pointcloud import read_pcd, write_pcd
 def test_trajectory_tables(trajectory_dir):
     traj = Trajectory(trajectory_dir)
     assert len(traj) == 5
-    assert traj.institution == "go2nus"
+    assert traj.institution == "miraikan"
     assert list(traj.odometry.columns[:2]) == ["frame_idx", "timestamp"]
     assert traj.odometry["timestamp"].iloc[1] == pytest.approx(traj.timestamps[1])
     det = traj.detections
@@ -19,7 +19,7 @@ def test_trajectory_tables(trajectory_dir):
 
 def test_trajectory_sensors(trajectory_dir):
     traj = Trajectory(trajectory_dir)
-    assert traj.cameras == ["imgs"] and traj.mask_folders == ["masked_imgs"]
+    assert traj.cameras == ["imgs"] and traj.mask_folders == ["masks"]
     assert traj.image(2).shape == (48, 64, 3)
     mask = traj.mask(0)
     assert mask.dtype == bool and mask[10, 12] and not mask[40, 50]
@@ -50,8 +50,23 @@ def test_discovery(trajectory_dir):
     root = trajectory_dir.parents[2]
     assert find_trajectory_dirs(root) == [trajectory_dir]
     assert find_trajectory_dirs(trajectory_dir) == [trajectory_dir]
-    assert find_trajectory_dirs(root, institution="go2nus") == [trajectory_dir]
-    assert len(list_trajectories(root / "human_readable_sampled")) == 1
+    assert find_trajectory_dirs(root, institution="miraikan") == [trajectory_dir]
+    assert len(list_trajectories(root / "sampled_data")) == 1
+
+
+def test_zipped_trajectories(trajectory_dir):
+    import shutil
+
+    from acme_dataset.download import extract_archives
+
+    inst = trajectory_dir.parent
+    shutil.make_archive(str(trajectory_dir), "zip", inst, trajectory_dir.name)
+    shutil.rmtree(trajectory_dir)
+    with pytest.warns(UserWarning, match="not extracted"):
+        assert find_trajectory_dirs(inst.parent) == []
+    assert extract_archives(inst) == [trajectory_dir]
+    assert find_trajectory_dirs(inst.parent) == [trajectory_dir]
+    assert len(Trajectory(trajectory_dir)) == 5
 
 
 def test_stats(trajectory_dir):
