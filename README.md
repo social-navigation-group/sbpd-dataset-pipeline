@@ -256,6 +256,7 @@ Set `ACME_ROOT` to the dataset folder (default `../ACME-dataset`) before startin
 | [`acme_dataset/`](acme_dataset) | Python package and `acme-dataset` CLI |
 | [`notebooks/`](notebooks) | Example notebooks |
 | [`tests/`](tests) | Unit tests on synthetic data (`pytest`); `ACME_ROOT=... pytest tests/test_sample_data.py` checks a real download |
+| [`static_map_extraction/`](static_map_extraction) | Static 3D maps with moving people removed, from a raw bag: offline LiDAR SLAM (KISS-ICP + GTSAM) + ERASOR2 |
 
 Tools used to build the dataset, in pipeline order:
 
