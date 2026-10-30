@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acme-dataset"
+version = "0.1.0"
+description = "Download, load, explore and process the ACME multi-cultural social navigation dataset"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pillow",
+    "pyyaml",
+    "tomli; python_version < '3.11'",
+    "openpyxl",
+    "opencv-python-headless",
+    "matplotlib",
+    "huggingface_hub>=0.23",
+    "rosbags>=0.10",
+]
+
+[project.optional-dependencies]
+notebooks = ["jupyter", "ipykernel"]
+dev = ["pytest", "nbformat", "nbconvert", "ipykernel"]
+
+[project.scripts]
+acme-dataset = "acme_dataset.cli:main"
+
+[project.urls]
+Dataset = "https://huggingface.co/datasets/acmesocnavdataset/ACME-dataset"
+Source = "https://github.com/social-navigation-group/sbpd-dataset-pipeline"
+
+[tool.setuptools.packages.find]
+include = ["acme_dataset*"]
+
+[tool.setuptools.package-data]
+acme_dataset = ["configs/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -484,14 +484,14 @@ def get_tag_poses_wrt_bev(video_file_uri, sync_timestamp, bev_camera_intrinsics)
 def main():
 
     # Input parameters
-    # rosbag_uri = "/home/pranav/go2_rosbags/dataset/apr_02/terrace_new_3_with_overhead_2025-04-02_11-43-48"                 # Path to rosbag file
+    # rosbag_uri = "/path/to/rosbag"                 # Path to rosbag file
     # rosbag_storage_id = "sqlite3"   # {sqlite3, mcap}
     # rosbag_compression = False
     # robot_camera_topic = "/camera/camera/color/image_raw/compressed"
     # robot_camera_compression = True
     # camera_info_topic = "/camera/camera/color/camera_info"
     # sync_command_topic = "/sync_command"
-    # video_file_uri = "/home/pranav/go2_bev_videos/apr_02/terrace_3_4/cam_01/GX010100.MP4"             # Path to video file
+    # video_file_uri = "/path/to/bev_video.MP4"             # Path to video file
     # sync_command_message_type = String
     # bev_skip_time_seconds = 200
     # bev_camera_intrinsics = CameraIntrinsics(fx = 1.00555621e+03, fy = 1.00425365e+03, cx = 9.66122376e+02, cy = 5.36938213e+02)

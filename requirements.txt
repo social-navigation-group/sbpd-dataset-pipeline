@@ -1,5 +1,3 @@
-opencv-python
-numpy==1.24.4
-decord
-rosbags
-rosbags-image
+# Installs the acme_dataset package and its dependencies (see pyproject.toml).
+# Each tool folder (anonymization-bag/, labelling-tool/, ...) documents its own requirements.
+-e .
