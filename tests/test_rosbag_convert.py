@@ -36,6 +36,7 @@ def test_find_bags(synthetic_bag):
     path, _ = synthetic_bag
     assert find_bags(path.parents[1]) == [path]
     assert guess_institution(path) == "go2nus"
+    assert guess_institution("ROS2_Bags/nus/x.zip") == "go2nus"
 
 
 def test_convert(synthetic_bag, tmp_path):
@@ -50,7 +51,8 @@ def test_convert(synthetic_bag, tmp_path):
     assert traj.image(0).shape == (48, 64, 3)
     assert traj.mask(0)[10, 6] and not traj.mask(0)[0, 0]
     np.testing.assert_allclose(traj.pointcloud(0), [[1, 2, 3, 10], [4, 5, 6, 20]])
-    assert (out / "pcd" / "0.pcd").exists()
+    assert (out / "pcd" / "0.pcd").exists() and not (out / "pcd" / "0.npz").exists()
+    assert traj.mask_folders == ["masks"]
     first = traj.detections_at(0)
     assert first[["x", "y", "width", "height"]].to_numpy().tolist() == boxes
     assert traj.speech["text"].tolist() == ["excuse me"]

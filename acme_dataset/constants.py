@@ -4,17 +4,23 @@ HF_REPO_ID = "acmesocnavdataset/ACME-dataset"
 HF_REPO_TYPE = "dataset"
 
 # Top-level folders of the dataset (identical on Hugging Face and on disk).
-RAW_BAGS_DIR = "ros2 bags"
-HUMAN_READABLE_DIR = "human_readable_sampled"
-BEV_DIR = "bev"
-BEV_ANNOTATIONS_DIR = "bev/bev_annotations"
-BEV_VIDEOS_DIR = "bev/bev_videos"
-TAGS_FILE = "dataset_tags.xlsx"
+RAW_BAGS_DIR = "ROS2_Bags"
+HUMAN_READABLE_DIR = "sampled_data"
+CALIBRATION_DIR = "sampled_data/extrinsics_intrinsics"
+UTTERANCES_DIR = "sampled_data/utterances"
+BEV_DIR = "BEV"
+BEV_ANNOTATIONS_DIR = "BEV/BEV_annotations"
+BEV_VIDEOS_DIR = "BEV/BEV_videos"
+TAGS_FILE = "acme_tags.xlsx"
 
 COMPONENTS = {
     "raw": RAW_BAGS_DIR,
     "human_readable": HUMAN_READABLE_DIR,
+    "calibration": CALIBRATION_DIR,
+    "utterances": UTTERANCES_DIR,
     "bev": BEV_DIR,
+    "bev_annotations": BEV_ANNOTATIONS_DIR,
+    "bev_videos": BEV_VIDEOS_DIR,
     "tags": TAGS_FILE,
 }
 
@@ -28,6 +34,12 @@ INSTITUTIONS = {
     "uex": "UEx",
     "gmu": "GMU",
     "ubonn": "UBonn",
+}
+
+# Other folder names used for the same institution (e.g. in extrinsics_intrinsics/ and BEV/).
+INSTITUTION_ALIASES = {
+    "nus": "go2nus",
+    "bonn": "ubonn",
 }
 
 # Human-readable data is uniformly sampled at this rate.

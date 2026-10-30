@@ -8,17 +8,18 @@ since the previous sample and every required topic has a new message.
 Output (one folder per bag, named ``<bag>_0``)::
 
     imgs/<i>.jpg         (imgs_<camera>/ for multi-camera robots)
-    masked_imgs/<i>.jpg  (masked_imgs_<camera>/ for several mask topics)
-    pcd/<i>.npz, pcd/<i>.pcd
-    traj_data.csv, traj_data.pkl
-    tracks.json, tracks.pkl
+    masks/<i>.jpg        (masks_<camera>/ for several mask topics)
+    pcd/<i>.pcd          (and/or pcd/<i>.npz, see ``pcd_format``)
+    traj_data.csv
+    tracks.json
     timestamps.txt
     speech.txt           (if the bag has a speech topic)
+
+which is the layout of ``sampled_data/<institution>/<trajectory>`` on Hugging Face.
 """
 
 import io
 import json
-import pickle
 import shutil
 from collections import deque
 from functools import lru_cache
@@ -30,7 +31,7 @@ import pandas as pd
 import yaml
 from PIL import Image
 
-from .constants import HUMAN_READABLE_RATE_HZ, INSTITUTIONS
+from .constants import HUMAN_READABLE_RATE_HZ, INSTITUTION_ALIASES, INSTITUTIONS
 from .pointcloud import write_pcd
 from .rosbag import (Bag, decode_binary_mask, decode_detections, decode_odometry,
                      decode_pointcloud2, detect_bbox_encoding)
@@ -48,10 +49,12 @@ def load_topic_config(path: PathLike = CONFIG_PATH) -> Dict[str, dict]:
 
 
 def guess_institution(path: PathLike) -> Optional[str]:
-    """Institution name found in the path components, e.g. ``ros2 bags/miraikan/x.zip``."""
+    """Institution name found in the path components, e.g. ``ROS2_Bags/miraikan/x.zip``."""
     for part in reversed(Path(path).resolve().parts):
         if part in INSTITUTIONS:
             return part
+        if part in INSTITUTION_ALIASES:
+            return INSTITUTION_ALIASES[part]
     return None
 
 
@@ -76,7 +79,7 @@ def convert_bag(
     institution: Optional[str] = None,
     config: Optional[dict] = None,
     rate: float = HUMAN_READABLE_RATE_HZ,
-    pcd_format: str = "both",
+    pcd_format: str = "pcd",
     bbox_encoding: str = "auto",
     overwrite: bool = False,
     extract_dir: Optional[PathLike] = None,
@@ -89,7 +92,7 @@ def convert_bag(
         institution: Key of ``configs/topics.yaml``; guessed from the path if omitted.
         config: Topic configuration overriding the built-in one for ``institution``.
         rate: Sampling rate in Hz (the released data uses 4 Hz).
-        pcd_format: ``"npz"``, ``"pcd"`` (ASCII) or ``"both"``.
+        pcd_format: ``"pcd"`` (ASCII, as released), ``"npz"`` (smaller, faster to load) or ``"both"``.
         bbox_encoding: ``"auto"``, ``"center"`` or ``"legacy"``
             (see :func:`acme_dataset.rosbag.decode_detections`).
         overwrite: Replace an existing output folder instead of skipping the bag.
@@ -104,7 +107,7 @@ def convert_bag(
         institution = institution or guess_institution(bag_path)
         if institution is None:
             raise ValueError(f"cannot guess the institution of {bag_path}; pass institution=...")
-        config = load_topic_config()[institution]
+        config = load_topic_config()[INSTITUTION_ALIASES.get(institution, institution)]
 
     with Bag(bag_path, extract_dir) as bag:
         out = Path(output_dir) / f"{bag.name}_0"
@@ -135,7 +138,7 @@ def convert_bag(
 
         required = image_topics + mask_topics + [odom_topic] + [t for t in (pcl_topic, tracking_topic) if t]
         image_dirs = {t: _folder_name("imgs", t, len(image_topics)) for t in image_topics}
-        mask_dirs = {t: _folder_name("masked_imgs", t, len(mask_topics), strip="masks_") for t in mask_topics}
+        mask_dirs = {t: _folder_name("masks", t, len(mask_topics), strip="masks_") for t in mask_topics}
         for folder in list(image_dirs.values()) + list(mask_dirs.values()) + (["pcd"] if pcl_topic else []):
             (out / folder).mkdir(parents=True, exist_ok=True)
 
@@ -202,18 +205,9 @@ def _write_tables(out: Path, odometry: List[dict], tracks: Optional[list],
                                            "linear_vel_x", "linear_vel_y", "angular_vel"])
     odom.insert(0, "frame_idx", range(len(odom)))
     odom.to_csv(out / "traj_data.csv", index=False)
-    with open(out / "traj_data.pkl", "wb") as f:
-        pickle.dump({
-            "position": odom[["position_x", "position_y"]].to_numpy(),
-            "yaw": odom["yaw"].to_numpy(),
-            "linear_vel": odom[["linear_vel_x", "linear_vel_y"]].to_numpy(),
-            "angular_vel": odom["angular_vel"].to_numpy(),
-        }, f)
     with open(out / "timestamps.txt", "w") as f:
         f.writelines(f"{t}\n" for t in timestamps)
     if tracks is not None:
-        with open(out / "tracks.pkl", "wb") as f:
-            pickle.dump(tracks, f)
         frames = [{
             "frame_idx": i,
             "detections": [{"track_id": tid, "bbox": dict(zip(("x", "y", "width", "height"), box))}

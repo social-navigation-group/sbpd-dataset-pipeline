@@ -3,7 +3,7 @@
 A BEV *session* is one overhead video annotated with pedestrian tracks. It is
 identified by a dataset name (e.g. ``bonn``, ``nus``, ``cmu``) and a session
 id (the stem of its trajectory file, e.g. ``20`` or ``GX010036_BEV1_DOW``).
-Its files live under ``bev/bev_annotations``::
+Its files live under ``BEV/BEV_annotations``::
 
     frames/<stem>.jpg                 BEV image the semantic tags were drawn on
     traj_frames/<stem>.jpg            same view with annotated tracks drawn in
@@ -96,10 +96,10 @@ class BEVIndex:
 
     def __init__(self, root: PathLike):
         self.root = Path(root)
-        if (self.root / BEV_ANNOTATIONS_DIR).is_dir():
-            self.root = self.root / BEV_ANNOTATIONS_DIR
-        elif (self.root / "bev_annotations").is_dir():
-            self.root = self.root / "bev_annotations"
+        for sub in (BEV_ANNOTATIONS_DIR, "BEV_annotations", "bev/bev_annotations", "bev_annotations"):
+            if (self.root / sub).is_dir():
+                self.root = self.root / sub
+                break
         self.frames: Dict[str, Path] = {}
         self.traj_frames: Dict[str, Path] = {}
         self.annotations: Dict[str, Path] = {}
@@ -164,7 +164,7 @@ class BEVSession:
     """Annotations of one BEV session.
 
     Example:
-        >>> session = BEVSession("ACME-dataset/bev", "bonn", "20")
+        >>> session = BEVSession("ACME-dataset/BEV", "bonn", "20")
         >>> df = session.trajectories()               # metric, filtered, 10 FPS
         >>> df = session.trajectories(target_fps=2.5) # transform_trajectories.py output
         >>> tags = session.tag_segments(df)           # split by semantic region
@@ -349,11 +349,11 @@ class BEVSession:
 
 
 def list_bev_sessions(root: PathLike) -> pd.DataFrame:
-    """All annotated BEV sessions below ``root`` (dataset root, ``bev/`` or ``bev_annotations/``)."""
+    """All annotated BEV sessions below ``root`` (dataset root, ``BEV/`` or ``BEV/BEV_annotations/``)."""
     return BEVIndex(root).sessions()
 
 
 def find_bev_videos(root: PathLike) -> List[Path]:
-    """BEV videos below ``root`` (e.g. ``bev/bev_videos/<institution>/*.mp4``)."""
+    """BEV videos below ``root`` (e.g. ``BEV/BEV_videos/<institution>/*.MP4``)."""
     root = Path(root)
     return sorted(p for p in root.rglob("*") if p.suffix.lower() in _VIDEO_SUFFIXES)

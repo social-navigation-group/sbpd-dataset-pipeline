@@ -1,19 +1,22 @@
 """Download parts of the ACME dataset from Hugging Face.
 
-The Hugging Face repository mirrors the on-disk layout::
+Layout of the Hugging Face repository::
 
-    ros2 bags/<institution>/<bag>.zip
-    human_readable_sampled/<institution>/<trajectory>/...
-    bev/bev_annotations/...  bev/bev_videos/<institution>/...
-    dataset_tags.xlsx
+    ROS2_Bags/<institution>/<bag>.zip
+    sampled_data/<institution>/<trajectory>.zip     (one human-readable folder per zip)
+    sampled_data/extrinsics_intrinsics/<institution>/...
+    sampled_data/utterances/<institution>_utterances.csv
+    BEV/BEV_annotations/...  BEV/BEV_videos/<institution>/...
+    acme_tags.xlsx
 
-so a download into ``local_dir`` gives the same tree the loaders expect.
+A download into ``local_dir`` keeps this layout. Human-readable zips are
+extracted next to themselves so the loaders find the trajectory folders.
 """
 
 from pathlib import Path
 from typing import Iterable, List, Optional, Union
 
-from .constants import BEV_DIR, COMPONENTS, HF_REPO_ID, HF_REPO_TYPE, TAGS_FILE
+from .constants import BEV_ANNOTATIONS_DIR, COMPONENTS, HF_REPO_ID, HF_REPO_TYPE, TAGS_FILE, UTTERANCES_DIR
 
 PathLike = Union[str, Path]
 
@@ -28,20 +31,28 @@ def allow_patterns(component: str, institution: Optional[str] = None,
                    names: Optional[Iterable[str]] = None) -> List[str]:
     """Hugging Face ``allow_patterns`` selecting a component, institution and/or items.
 
-    ``names`` are bag names (raw), trajectory folder names (human_readable)
-    or BEV dataset/session name prefixes (bev).
+    ``names`` are bag names (raw), trajectory names (human_readable) or BEV
+    dataset names (bev: ``bonn``, ``cmu``, ``gmu``, ``keio``, ``nus``,
+    ``short-term``, ``umich`` for annotations; institution names for videos).
     """
     base = _component_dir(component)
     if component == "tags":
         return [TAGS_FILE]
     names = list(names or [])
     inst = institution or "*"
-    if component == "bev":
+    if component == "utterances":
+        return [f"{UTTERANCES_DIR}/{inst}_utterances.csv"]
+    if component in ("bev", "bev_annotations", "bev_videos"):
         if not names and institution is None:
-            return [f"{BEV_DIR}/*"]
+            return [f"{base}/*"]
         keys = names or [institution]
-        return [p for key in keys for p in (f"{BEV_DIR}/*/{key}/*", f"{BEV_DIR}/*/{key}_*", f"{BEV_DIR}/*.ipynb")]
-    if not names:
+        patterns = [p for key in keys
+                    for p in (f"{base}/{key}/*", f"{base}/*/{key}/*", f"{base}/{key}_*", f"{base}/*/{key}_*")]
+        if component != "bev_videos":
+            patterns += [f"{BEV_ANNOTATIONS_DIR}/*.ipynb", f"{BEV_ANNOTATIONS_DIR}/*.py",
+                         f"{BEV_ANNOTATIONS_DIR}/requirements.txt"]
+        return patterns
+    if component == "calibration" or not names:
         return [f"{base}/{inst}/*"]
     return [p for name in names for p in (f"{base}/{inst}/{name}/*", f"{base}/{inst}/{name}.zip")]
 
@@ -70,21 +81,24 @@ def download(
     local_dir: PathLike = "ACME-dataset",
     repo_id: str = HF_REPO_ID,
     revision: Optional[str] = None,
-    extract: bool = False,
+    extract: Optional[bool] = None,
     max_workers: int = 8,
 ) -> Path:
     """Download (part of) a component into ``local_dir`` and return ``local_dir``.
 
     Args:
-        component: ``raw``, ``human_readable``, ``bev`` or ``tags``.
-        institution: Restrict to one institution folder (e.g. ``go2nus``).
+        component: ``raw``, ``human_readable``, ``calibration``, ``utterances``,
+            ``bev`` (``bev_annotations`` + ``bev_videos``) or ``tags``.
+        institution: Restrict to one institution folder (e.g. ``miraikan``).
         names: Restrict to specific bags / trajectories / BEV datasets.
         local_dir: Destination; the repository layout is kept below it.
-        extract: Unzip downloaded ``.zip`` archives (e.g. raw bags) in place.
+        extract: Unzip downloaded ``.zip`` archives in place. Defaults to True
+            for ``human_readable`` and False otherwise (bags are extracted
+            on first use by :class:`acme_dataset.rosbag.Bag`).
 
     Example:
-        >>> download("human_readable", "go2nus", ["deck_1_without_overhead_2025-03-26_12-05-52_3_corrected_merged_0"])
-        >>> download("raw", "miraikan", extract=True)
+        >>> download("human_readable", "miraikan", ["03-08-2025-1-3F_Geo_Cosmos_0_0_10_0"])
+        >>> download("raw", "miraikan", ["03-08-2025-1-3F_Geo_Cosmos_0_0_10"])
     """
     from huggingface_hub import snapshot_download
 
@@ -97,13 +111,15 @@ def download(
         allow_patterns=allow_patterns(component, institution, names),
         max_workers=max_workers,
     )
+    if extract is None:
+        extract = component == "human_readable"
     if extract:
         extract_archives(local_dir / _component_dir(component))
     return local_dir
 
 
 def extract_archives(root: PathLike) -> List[Path]:
-    """Extract every ``.zip`` below ``root`` next to itself (skips already extracted bags)."""
+    """Extract every ``.zip`` below ``root`` next to itself (skips already extracted archives)."""
     import zipfile
 
     from .rosbag import extract_bag
@@ -116,6 +132,9 @@ def extract_archives(root: PathLike) -> List[Path]:
         try:
             out.append(extract_bag(archive))
         except ValueError:  # not a bag: plain archive
+            if archive.with_suffix("").is_dir():
+                out.append(archive.with_suffix(""))
+                continue
             with zipfile.ZipFile(archive) as zf:
                 target = archive.parent.resolve()
                 if any(not (target / n).resolve().is_relative_to(target) for n in zf.namelist()):

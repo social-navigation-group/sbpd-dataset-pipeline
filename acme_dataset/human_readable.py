@@ -1,21 +1,25 @@
 """Load trajectories from the human-readable (4 Hz resampled) part of ACME.
 
-Each trajectory folder looks like::
+On Hugging Face each trajectory is one zip, ``sampled_data/<institution>/<trajectory>.zip``,
+holding a folder::
 
-    human_readable_sampled/<institution>/<trajectory>/
+    <trajectory>/
         timestamps.txt      one UNIX timestamp (s) per sample
         traj_data.csv       robot odometry per sample (odom frame)
         tracks.json         pedestrian 2D boxes + track ids per sample
         imgs/<i>.jpg        egocentric RGB (imgs_<camera>/ for multi-camera robots)
-        masked_imgs/<i>.jpg binary person segmentation masks (255 = person)
-        pcd/<i>.pcd         LiDAR point cloud, x y z intensity (and/or <i>.npz)
-        speech.txt          robot utterances "<timestamp>: <text>" (some institutions)
+        masks/<i>.jpg       binary person segmentation masks, 255 = person (some institutions)
+        pcd/<i>.pcd         LiDAR point cloud, x y z intensity (ASCII PCD)
+        speech.txt          robot utterances / UI events "<timestamp>: <text>" (some institutions)
 
 Sample ``i`` of every modality refers to the same instant ``timestamps[i]``.
+The loaders work on extracted folders (``acme-dataset download`` extracts them).
 """
 
+import ast
 import json
 import pickle
+import warnings
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -25,7 +29,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from .constants import HUMAN_READABLE_DIR
+from .constants import HUMAN_READABLE_DIR, UTTERANCES_DIR
 from .pointcloud import read_npz, read_pcd
 
 PathLike = Union[str, Path]
@@ -51,7 +55,7 @@ class Trajectory:
     """One trajectory folder of the human-readable data.
 
     Example:
-        >>> traj = Trajectory("ACME-dataset/human_readable_sampled/go2nus/<name>")
+        >>> traj = Trajectory("ACME-dataset/sampled_data/miraikan/<trajectory>")
         >>> traj.odometry.head()
         >>> img = traj.image(0)
         >>> boxes = traj.detections_at(0)
@@ -161,7 +165,7 @@ class Trajectory:
 
     @cached_property
     def mask_folders(self) -> List[str]:
-        """Person-mask folder names (``masked_imgs`` or ``masks``, plus per-camera variants)."""
+        """Person-mask folder names (``masks`` or ``masked_imgs``, plus per-camera variants)."""
         return sorted(p.name for p in self.path.iterdir()
                       if p.is_dir() and p.name.startswith(("masked_imgs", "masks")))
 
@@ -234,7 +238,7 @@ class Trajectory:
 def find_trajectory_dirs(root: PathLike, institution: Optional[str] = None) -> List[Path]:
     """Return trajectory folders below ``root``.
 
-    ``root`` may be the dataset root, its ``human_readable_sampled`` folder,
+    ``root`` may be the dataset root, its ``sampled_data`` folder,
     an institution folder, or a single trajectory folder.
     """
     root = Path(root)
@@ -244,9 +248,31 @@ def find_trajectory_dirs(root: PathLike, institution: Optional[str] = None) -> L
         root = root / HUMAN_READABLE_DIR
     if institution is not None:
         root = root / institution
-    return sorted((p.parent for p in root.rglob("timestamps.txt")), key=lambda p: (p.parent.name, p.name))
+    found = sorted((p.parent for p in root.rglob("timestamps.txt")), key=lambda p: (p.parent.name, p.name))
+    zipped = [z for z in root.rglob("*.zip") if not z.with_suffix("").is_dir()]
+    if zipped:
+        warnings.warn(f"{len(zipped)} trajectory zip(s) below {root} are not extracted; run "
+                      f"acme_dataset.download.extract_archives({str(root)!r}) to load them")
+    return found
 
 
 def list_trajectories(root: PathLike, institution: Optional[str] = None) -> List[Trajectory]:
     """Like :func:`find_trajectory_dirs` but returns :class:`Trajectory` objects."""
     return [Trajectory(p) for p in find_trajectory_dirs(root, institution)]
+
+
+def load_utterances(path) -> pd.DataFrame:
+    """Load ``sampled_data/utterances/<institution>_utterances.csv`` (or every CSV in
+    a folder / dataset root) as one row per utterance: ``institution, trajectory,
+    utterance, timestamp``."""
+    path = Path(path)
+    if path.is_dir():
+        folder = path / UTTERANCES_DIR if (path / UTTERANCES_DIR).is_dir() else path
+        files = sorted(folder.glob("*_utterances.csv"))
+        return pd.concat([load_utterances(f) for f in files], ignore_index=True) if files else pd.DataFrame()
+    df = pd.read_csv(path)
+    df["timestamp"] = df["timestamps"].map(lambda v: ast.literal_eval(v) if isinstance(v, str) else [v])
+    df = df.explode("timestamp").drop(columns="timestamps")
+    df["timestamp"] = df["timestamp"].astype(float)
+    df.insert(0, "institution", path.stem.replace("_utterances", ""))
+    return df[["institution", "trajectory", "utterance", "timestamp"]].reset_index(drop=True)

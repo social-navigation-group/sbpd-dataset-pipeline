@@ -21,8 +21,8 @@ def _jpeg(array: np.ndarray) -> bytes:
 @pytest.fixture
 def trajectory_dir(tmp_path: Path) -> Path:
     """A 5-frame human-readable trajectory folder."""
-    root = tmp_path / "human_readable_sampled" / "go2nus" / "test_traj_0"
-    for sub in ("imgs", "masked_imgs", "pcd"):
+    root = tmp_path / "sampled_data" / "miraikan" / "test_traj_0"
+    for sub in ("imgs", "masks", "pcd"):
         (root / sub).mkdir(parents=True)
     n = 5
     t0 = 1_700_000_000.0
@@ -40,7 +40,7 @@ def trajectory_dir(tmp_path: Path) -> Path:
         Image.fromarray(np.full((IMG_H, IMG_W, 3), 40 * i, np.uint8)).save(root / "imgs" / f"{i}.jpg")
         mask = np.zeros((IMG_H, IMG_W), np.uint8)
         mask[5:25, 10:18] = 255
-        Image.fromarray(mask).save(root / "masked_imgs" / f"{i}.jpg")
+        Image.fromarray(mask).save(root / "masks" / f"{i}.jpg")
         np.savez(root / "pcd" / f"{i}.npz", np.full((10, 4), i, np.float32))
     (root / "speech.txt").write_text(f"{t0 + 0.3}: excuse me\n")
     return root
@@ -49,7 +49,7 @@ def trajectory_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def bev_root(tmp_path: Path) -> Path:
     """A BEV annotation tree with one session ``toy/s1`` and an identity-like homography."""
-    root = tmp_path / "bev" / "bev_annotations"
+    root = tmp_path / "BEV" / "BEV_annotations"
     stem = "toy_s1_transformed"
     for sub in ("frames", "traj_frames", "annotations", f"masks/{stem}",
                 "trajectory-transform/trajectories/toy", "trajectory-transform/homographies/toy"):
