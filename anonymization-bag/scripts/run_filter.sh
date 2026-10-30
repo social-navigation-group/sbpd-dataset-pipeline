@@ -1,5 +1,4 @@
 #!/bin/bash
-# filepath: /home/allanwan/dataset/bag_file_process/scripts/run_filter.sh
 
 # run_filter.sh
 # This script executes the Python filtering script.

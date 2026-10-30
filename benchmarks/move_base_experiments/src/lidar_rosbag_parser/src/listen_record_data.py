@@ -273,8 +273,8 @@ class ListenRecordData:
         save_data_path: location to place pkl file and bev lidar images directory
 
         example:
-            rosbag_path: /home/abhinavchadaga/BCSAN/train.bag
-            save_data_path: /home/abhinavchadaga/BCSAN/data
+            rosbag_path: /path/to/BCSAN/train.bag
+            save_data_path: /path/to/BCSAN/data
 
             BCSAN:
                 - data:

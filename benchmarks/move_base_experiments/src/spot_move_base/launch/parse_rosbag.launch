@@ -17,7 +17,7 @@
 
     <!--    data parser node -->
     <arg name="rosbag_path" default=""/>
-    <arg name="save_data_path" default="/home/shashank/code/my_projects/BCSAN/"/>
+    <arg name="save_data_path" default="$(env HOME)/move_base_output/"/>
     <arg name="viz_lidar" default="false" />
     <arg name="odom_topic" default="" />
     <arg name="lidar_topic" default="" />

@@ -1,6 +1,19 @@
 *.avi
 *.tar
 *.pyc
+__pycache__/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+.dev/
 
 logs/
 labelling-tool/resources/
+
+# dataset downloads / conversion outputs
+ACME-dataset/
+converted/
+bev_csv*/

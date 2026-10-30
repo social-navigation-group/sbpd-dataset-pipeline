@@ -1,0 +1,92 @@
+# Topics used to build the human-readable data from each institution's ROS 2 bags.
+#
+# For list entries the converter uses every image/mask topic present in the bag
+# and the first odometry/pointcloud/tracking topic present in the bag.
+#
+#   odom_topics:        nav_msgs/Odometry
+#   image_topics:       sensor_msgs/CompressedImage (several = multi-camera robot)
+#   pointcloud_topics:  sensor_msgs/PointCloud2
+#   tracking_topics:    vision_msgs/Detection2DArray (pedestrian boxes + track ids)
+#   mask_topics:        custom_msgs/BinaryMask (person segmentation)
+#   speech_topic:       std_msgs/String (robot speech / events), optional
+#   start_slack/end_slack: number of samples dropped at the start/end of a bag
+
+go2nus:
+  odom_topics: ["/utlidar/robot_odom"]
+  image_topics: ["/camera/camera/color/image_raw/compressed"]
+  pointcloud_topics: ["/rslidar_points"]
+  tracking_topics: ["/tracks_camera_camera_color_image_raw_compressed"]
+  mask_topics: ["/masks_camera_camera_color_image_raw_compressed"]
+  speech_topic: "/speech_command"
+  start_slack: 0
+  end_slack: 0
+
+miraikan:
+  odom_topics: ["/odom"]
+  image_topics: ["/d455_rs1/color/image_raw/compressed"]
+  pointcloud_topics: ["/velodyne_points"]
+  tracking_topics: ["/tracks_d455_rs1_color_image_raw_compressed"]
+  mask_topics: ["/masks_d455_rs1_color_image_raw_compressed"]
+  speech_topic: "/cabot/event"
+  start_slack: 0
+  end_slack: 0
+
+keio:
+  odom_topics: ["/odom"]
+  image_topics: ["/d455_rs1/color/image_raw/compressed"]
+  pointcloud_topics: ["/velodyne_points"]
+  tracking_topics: ["/tracks_d455_rs1_color_image_raw_compressed"]
+  mask_topics: []  # masks are not exported for Keio
+  speech_topic: "/cabot/event"
+  start_slack: 0
+  end_slack: 0
+
+cmu:
+  odom_topics: ["/cabot/odometry/filtered", "/cabot/odometry/raw"]
+  image_topics: ["/zed/zed_node/left/image_rect_color/compressed"]
+  pointcloud_topics: ["/velodyne_points"]
+  tracking_topics: ["/tracks_zed_zed_node_left_image_rect_color_compressed"]
+  mask_topics: ["/masks_zed_zed_node_left_image_rect_color_compressed"]
+  speech_topic: "/speech_command"
+  start_slack: 0
+  end_slack: 0
+
+umich:
+  odom_topics: ["/odom"]
+  image_topics: ["/camera/color/image_raw/compressed"]
+  pointcloud_topics: ["/velodyne_points"]
+  tracking_topics: ["/tracks_camera_color_image_raw_compressed"]
+  mask_topics: []
+  speech_topic: null
+  start_slack: 0
+  end_slack: 0
+
+uex:
+  odom_topics: ["/odom_icp"]
+  image_topics: ["/zed/zed_node/rgb/image_rect_color/compressed"]
+  pointcloud_topics: ["/rslidar_helios_points"]
+  tracking_topics: ["/tracks_zed_zed_node_rgb_image_rect_color_compressed"]
+  mask_topics: ["/masks_zed_zed_node_rgb_image_rect_color_compressed"]
+  speech_topic: "/speech_command"
+  start_slack: 1
+  end_slack: 1
+
+gmu:
+  odom_topics: ["/odom"]
+  image_topics: ["/zed2/zed_node/rgb/image_rect_color/compressed", "/insta360_x4/image_raw/compressed"]
+  pointcloud_topics: ["/velodyne_points"]
+  tracking_topics: ["/tracks_insta360_x4_image_raw_compressed", "/tracks_zed2_zed_node_right_image_rect_color_compressed"]
+  mask_topics: []
+  speech_topic: null
+  start_slack: 1
+  end_slack: 1
+
+ubonn:
+  odom_topics: ["/go1_controller/odom"]
+  image_topics: ["/fpv"]
+  pointcloud_topics: ["/velodyne_points"]
+  tracking_topics: ["/tracks_fpv"]
+  mask_topics: ["/masks_fpv"]
+  speech_topic: "/recording"
+  start_slack: 0
+  end_slack: 0
