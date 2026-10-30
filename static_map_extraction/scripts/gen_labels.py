@@ -70,8 +70,8 @@ def main():
     (SEQ / "patchwork").mkdir(exist_ok=True)
     (SEQ / "hdbscan").mkdir(exist_ok=True)
     n = len(list((SEQ / "velodyne").glob("*.bin")))
-    # A worker can die (this machine: sporadic general protection faults under load); multiprocessing.Pool
-    # then hangs forever. ProcessPoolExecutor raises BrokenProcessPool instead: retry the missing frames.
+    # If a worker dies, multiprocessing.Pool hangs forever; ProcessPoolExecutor raises BrokenProcessPool
+    # instead: retry the missing frames.
     stats = []
     for attempt in range(4):
         todo = [i for i in range(n) if not (SEQ / "hdbscan" / f"{i:06d}.label").exists()]
